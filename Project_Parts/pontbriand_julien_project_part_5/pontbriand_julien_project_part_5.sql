@@ -1,3 +1,5 @@
+--Q1
+
 connect des03/des03;
 SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE show_data AS
@@ -148,6 +150,7 @@ END;
 show error
 
 EXEC show_highest_paid_employees(2);
+EXEC show_highest_paid_employees(10);
 	
 	
 --Q5
