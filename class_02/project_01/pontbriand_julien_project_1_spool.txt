@@ -1,0 +1,204 @@
+SQL> --Q1
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE triple_value (p_value_to_triple IN NUMBER) AS
+  2  v_tripled_value NUMBER;
+  3  BEGIN
+  4  v_tripled_value := p_value_to_triple * 3;
+  5  DBMS_OUTPUT.PUT_LINE('The triple of ' || p_value_to_triple || ' is ' || v_tripled_value || '.');
+  6  END;
+  7  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC triple_value(333);
+The triple of 333 is 999.                                                       
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> --Q2
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE convert_celcius_to_fahrenheit (p_temp_celcius IN NUMBER) AS
+  2  v_temp_fahrenheit NUMBER;
+  3  BEGIN
+  4  v_temp_fahrenheit := (9/5) * p_temp_celcius + 32;
+  5  DBMS_OUTPUT.PUT_LINE(p_temp_celcius || ' degree in C is equivalent to ' || v_temp_fahrenheit || ' in F');
+  6  END;
+  7  /
+
+Procedure created.
+
+SQL> EXEC convert_celcius_to_fahrenheit(100);
+100 degree in C is equivalent to 212 in F                                       
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> --Q3
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE convert_fahrenheit_to_celcius (p_temp_fahrenheit IN NUMBER) AS
+  2  v_temp_celcius NUMBER;
+  3  BEGIN
+  4  v_temp_celcius := (5/9) * (p_temp_fahrenheit - 32);
+  5  DBMS_OUTPUT.PUT_LINE(p_temp_fahrenheit || ' degree in F is equivalent to ' || v_temp_celcius || ' in C');
+  6  END;
+  7  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC convert_fahrenheit_to_celcius(100);
+100 degree in F is equivalent to 37.77777777777777777777777777777777777778 in C 
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Q4
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE calculate_gst_qst_total (p_initial_price IN NUMBER) AS
+  2  v_gst NUMBER;
+  3  v_qst NUMBER;
+  4  v_tax_total NUMBER;
+  5  v_grand_total NUMBER;
+  6  BEGIN
+  7  v_gst := p_initial_price * 0.05;
+  8  v_qst := p_initial_price * 0.0998;
+  9  v_tax_total := v_gst + v_qst;
+ 10  v_grand_total := v_qst + v_gst + p_initial_price;
+ 11  DBMS_OUTPUT.PUT_LINE('For the price of $' || p_initial_price);
+ 12  DBMS_OUTPUT.PUT_LINE('You will have to pay $' || v_gst || ' GST');
+ 13  DBMS_OUTPUT.PUT_LINE('$' || v_qst || ' QST for a total of $' || v_tax_total);
+ 14  DBMS_OUTPUT.PUT_LINE('The GRAND TOTAL is $' || v_grand_total);
+ 15  END;
+ 16  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC calculate_gst_qst_total(100);
+For the price of $100                                                           
+You will have to pay $5 GST                                                     
+$9.98 QST for a total of $14.98                                                 
+The GRAND TOTAL is $114.98                                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Q5
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE calculate_area_perimeter(p_width IN NUMBER, p_height IN NUMBER) AS
+  2  v_area NUMBER;
+  3  v_perimeter NUMBER;
+  4  BEGIN
+  5  v_area := p_width * p_height;
+  6  v_perimeter := (p_width + p_height) * 2;
+  7  DBMS_OUTPUT.PUT_LINE('The area of a ' || p_width || ' by ' || p_height || ' rectangle is ' || v_area || '. Its perimeter is ' || v_perimeter || '.');
+  8  END;
+  9  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC calculate_area_perimeter(10,10);
+The area of a 10 by 10 rectangle is 100. Its perimeter is 40.                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Q6
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION convert_C_to_F (p_temp_celcius IN NUMBER) RETURN NUMBER AS
+  2  v_temp_fahrenheit NUMBER;
+  3  BEGIN
+  4  v_temp_fahrenheit := (9/5) * p_temp_celcius + 32;
+  5  RETURN v_temp_fahrenheit;
+  6  END;
+  7  /
+
+Function created.
+
+SQL> 
+SQL> DROP TABLE temperature_in_C;
+
+Table dropped.
+
+SQL> CREATE TABLE temperature_in_C(temp_id NUMBER, temp_in_C NUMBER);
+
+Table created.
+
+SQL> INSERT INTO temperature_in_C (temp_id, temp_in_C) VALUES (1, 100);
+
+1 row created.
+
+SQL> INSERT INTO temperature_in_C (temp_id, temp_in_C) VALUES (2, 150);
+
+1 row created.
+
+SQL> INSERT INTO temperature_in_C (temp_id, temp_in_C) VALUES (3, 200);
+
+1 row created.
+
+SQL> SELECT temp_id, temp_in_C, convert_C_to_F(temp_in_C) Converted_in_F FROM temperature_in_C;
+
+   TEMP_ID  TEMP_IN_C CONVERTED_IN_F                                            
+---------- ---------- --------------                                            
+         1        100            212                                            
+         2        150            302                                            
+         3        200            392                                            
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Q7
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION convert_F_to_C (p_temp_fahrenheit IN NUMBER) RETURN NUMBER AS
+  2  v_temp_celcius NUMBER;
+  3  BEGIN
+  4  v_temp_celcius := (5/9) * (p_temp_fahrenheit - 32);
+  5  RETURN v_temp_celcius;
+  6  END;
+  7  /
+
+Function created.
+
+SQL> 
+SQL> DROP TABLE temperature_in_F;
+
+Table dropped.
+
+SQL> CREATE TABLE temperature_in_F(temp_id NUMBER, temp_in_F NUMBER);
+
+Table created.
+
+SQL> INSERT INTO temperature_in_F (temp_id, temp_in_F) VALUES (1, 100);
+
+1 row created.
+
+SQL> INSERT INTO temperature_in_F (temp_id, temp_in_F) VALUES (2, 150);
+
+1 row created.
+
+SQL> INSERT INTO temperature_in_F (temp_id, temp_in_F) VALUES (3, 200);
+
+1 row created.
+
+SQL> SELECT temp_id, temp_in_F, convert_F_to_C(temp_in_F) Converted_in_C FROM temperature_in_F;
+
+   TEMP_ID  TEMP_IN_F CONVERTED_IN_C                                            
+---------- ---------- --------------                                            
+         1        100     37.7777778                                            
+         2        150     65.5555556                                            
+         3        200     93.3333333                                            
+
+SQL> SPOOL OFF

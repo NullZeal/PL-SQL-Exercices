@@ -1,0 +1,74 @@
+SQL> CREATE OR REPLACE PROCEDURE Bonus1 (age1 IN NUMBER, age2 IN NUMBER, age3 IN NUMBER) AS
+  2  v_age1 NUMBER;
+  3  v_age2 NUMBER;
+  4  v_age3 NUMBER;
+  5  v_total_age NUMBER;
+  6  BEGIN
+  7  v_age1 := age1;
+  8  v_age2 := age2;
+  9  v_age3 := age3;
+ 10  v_total_age := age1 + age2 + age3;
+ 11  DBMS_OUTPUT.PUT_LINE('We are Masoud, Jessy and Julien Y Z and our combined age is ' || v_total_age)
+ 12  END;
+ 13  /
+
+Warning: Procedure created with compilation errors.
+
+SQL> CREATE OR REPLACE PROCEDURE Bonus1 (age1 IN NUMBER, age2 IN NUMBER, age3 IN NUMBER) AS
+  2  v_age1 NUMBER;
+  3  v_age2 NUMBER;
+  4  v_age3 NUMBER;
+  5  v_total_age NUMBER;
+  6  BEGIN
+  7  v_age1 := age1;
+  8  v_age2 := age2;
+  9  v_age3 := age3;
+ 10  v_total_age := age1 + age2 + age3;
+ 11  DBMS_OUTPUT.PUT_LINE('We are Masoud, Jessy and Julien and our combined age is ' || v_total_age);
+ 12  END;
+ 13  /
+
+Procedure created.
+
+SQL> EXEC Bonus1;
+BEGIN Bonus1; END;
+
+      *
+ERROR at line 1:
+ORA-06550: line 1, column 7: 
+PLS-00306: wrong number or types of arguments in call to 'BONUS1' 
+ORA-06550: line 1, column 7: 
+PL/SQL: Statement ignored 
+
+
+SQL> EXEC Bonus1(30, 31, 32)
+We are Masoud, Jessy and Julien and our combined age is 93                      
+
+PL/SQL procedure successfully completed.
+
+SQL> CREATE OR REPLACE PROCEDURE Bonus1 (age1, age2, age3 IN NUMBER) AS
+  2  v_total_age NUMBER;
+  3  BEGIN
+  4  v_total_age := age1 + age2 + age3;
+  5  DBMS_OUTPUT.PUT_LINE('We are Masoud, Jessy and Julien and our combined age is ' || v_total_age);
+  6  END;
+  7  /
+
+Warning: Procedure created with compilation errors.
+
+SQL> CREATE OR REPLACE PROCEDURE Bonus1 (age1 IN NUMBER, age2 IN NUMBER, age3 IN NUMBER) AS
+  2  v_total_age NUMBER;
+  3  BEGIN
+  4  v_total_age := age1 + age2 + age3;
+  5  DBMS_OUTPUT.PUT_LINE('We are Masoud, Jessy and Julien and our combined age is ' || v_total_age);
+  6  END;
+  7  /
+
+Procedure created.
+
+SQL> EXEC Bonus1(30,31,32);
+We are Masoud, Jessy and Julien and our combined age is 93                      
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF

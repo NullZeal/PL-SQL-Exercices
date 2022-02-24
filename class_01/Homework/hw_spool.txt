@@ -1,0 +1,39 @@
+SQL> CREATE OR REPLACE PROCEDURE hw1(product_price IN NUMBER) AS
+  2  v_gst NUMBER;
+  3  v_qst NUMBER;
+  4  v_total NUMBER;
+  5  BEGIN
+  6  v_gst := product_price * 0.05;
+  7  v_qst := product_price * 0.095;
+  8  v_total := product_price + v_gst + v_qst;
+  9  DBMS_OUTPUT.PUT_LINE('For a price of ' || product_price || ', you will have to pay $' || v_gst || ' GST, $' || v_qst || ' QST. Your total is $' || v_total);
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> EXEC hw1(100);
+For a price of 100, you will have to pay $5 GST, $9.5 QST. Your total is $114.5 
+
+PL/SQL procedure successfully completed.
+
+SQL> CREATE OR REPLACE PROCEDURE hw1(product_price IN NUMBER) AS
+  2  v_gst NUMBER;
+  3  v_qst NUMBER;
+  4  v_total NUMBER;
+  5  BEGIN
+  6  v_gst := product_price * 0.05;
+  7  v_qst := product_price * 0.095;
+  8  v_total := product_price + v_gst + v_qst;
+  9  DBMS_OUTPUT.PUT_LINE('For a price of $' || product_price || ', you will have to pay $' || v_gst || ' GST, $' || v_qst || ' QST. Your total is $' || v_total);
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> EXEC hw1(100);
+For a price of $100, you will have to pay $5 GST, $9.5 QST. Your total is $114.5
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF

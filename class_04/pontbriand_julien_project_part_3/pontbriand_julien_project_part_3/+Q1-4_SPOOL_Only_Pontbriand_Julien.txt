@@ -1,0 +1,487 @@
+SQL> SET linesize 180
+SQL> SET pagesize 300
+SQL> 
+SQL> -- QUESTION 1
+SQL> connect scott/tiger;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE giveEmpInfo (p_empno IN NUMBER) AS
+  2  v_dept_name VARCHAR2(20);
+  3  v_emp_name VARCHAR2(20);
+  4  v_initial_salary NUMBER;
+  5  
+  6  v_annual_salary NUMBER;
+  7  v_total_salary NUMBER;
+  8  v_commission NUMBER;
+  9  
+ 10  BEGIN
+ 11  
+ 12  SELECT d.DNAME, e.ename, e.sal, e.comm
+ 13  INTO v_dept_name, v_emp_name, v_initial_salary, v_commission
+ 14  FROM emp e
+ 15  JOIN dept d
+ 16  ON e.deptno = d.deptno
+ 17  WHERE e.empno = p_empno;
+ 18  
+ 19  v_annual_salary := v_initial_salary * 12;
+ 20  v_total_salary := v_annual_salary;
+ 21  
+ 22  IF v_commission IS NOT NULL THEN
+ 23  v_total_salary := v_annual_salary + v_commission;
+ 24  END IF;
+ 25  
+ 26  DBMS_OUTPUT.PUT_LINE('Employee Number ' || p_empno || ' is ' || v_emp_name || '. He earns $'|| v_total_salary || ' a year, commission included, and his department name is : ' || v_dept_name);
+ 27  
+ 28  EXCEPTION
+ 29  WHEN NO_DATA_FOUND THEN
+ 30  DBMS_OUTPUT.PUT_LINE('Error - No employee has that number associated with it.');
+ 31  WHEN OTHERS THEN
+ 32  DBMS_OUTPUT.PUT_LINE('An error has occured.');
+ 33  END;
+ 34  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> -- TEST 1 : 5000 MONTHLY SALARY, NO COMMISSION
+SQL> exec giveEmpInfo (7839);
+Employee Number 7839 is KING. He earns $60000 a year, commission included, and his department name is : ACCOUNTING                                                                  
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 2 : 1600 MONTHLY SALARY * 12 = 19200 + 300 COMMISSION = 19500
+SQL> exec giveEmpInfo (7499);
+Employee Number 7499 is ALLEN. He earns $19500 a year, commission included, and his department name is : SALES                                                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 3 : DOES NOT EXIST IN DATABASE
+SQL> exec giveEmpInfo (99);
+Error - No employee has that number associated with it.                                                                                                                             
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> ------------------------------------------------------------------------------------------------------------
+SQL> 
+SQL> 
+SQL> -- QUESTION 2
+SQL> connect des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE showItemDescription(p_inv_id_in IN NUMBER) AS
+  2  
+  3  v_inv_price NUMBER;
+  4  v_inv_color VARCHAR2(20);
+  5  v_inv_quantity NUMBER;
+  6  v_inv_item_id NUMBER;
+  7  
+  8  v_item_desc varchar2(30);
+  9  
+ 10  v_item_value NUMBER;
+ 11  
+ 12  BEGIN
+ 13  
+ 14  SELECT inv.inv_price, inv.color, inv.inv_qoh, inv.item_id, i.item_desc
+ 15  INTO v_inv_price, v_inv_color, v_inv_quantity, v_inv_item_id, v_item_desc
+ 16  FROM inventory inv
+ 17  JOIN item i
+ 18  ON inv.item_id = i.item_id
+ 19  WHERE inv.inv_id = p_inv_id_in;
+ 20  
+ 21  v_item_value := v_inv_quantity * v_inv_price;
+ 22  
+ 23  DBMS_OUTPUT.PUT_LINE(chr(10) || 'Item description: ' || v_item_desc || ' --------- '
+ 24  || 'Item price: $CAD ' || v_inv_price || ' --------- '
+ 25  || 'Item Color: ' || v_inv_color || ' --------- '
+ 26  || 'Quantity: ' || v_inv_quantity || ' --------- '
+ 27  || 'Item total value: $CAD ' || v_item_value);
+ 28  EXCEPTION
+ 29  WHEN NO_DATA_FOUND THEN
+ 30  DBMS_OUTPUT.PUT_LINE('Inventory ID # ' || p_inv_id_in || ' does not exist in the database.');
+ 31  WHEN OTHERS THEN
+ 32  DBMS_OUTPUT.PUT_LINE('An error has occured.');
+ 33  
+ 34  END;
+ 35  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> -- TEST 1 : ID 1
+SQL> exec showItemDescription(1);
+
+Item description: 3-Season Tent --------- Item price: $CAD 259.99 --------- Item Color: Sky Blue --------- Quantity: 16 --------- Item total value: $CAD 4159.84                   
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 2 : ID 32
+SQL> exec showItemDescription(32);
+
+Item description: Girl's Soccer Tee --------- Item price: $CAD 19.99 --------- Item Color: White --------- Quantity: 100 --------- Item total value: $CAD 1999                     
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 3 : ID 33, does not exist in database
+SQL> exec showItemDescription(33);
+Inventory ID # 33 does not exist in the database.                                                                                                                                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --------------------------------------------------------------------------------------------------------
+SQL> 
+SQL> 
+SQL> -- Question 3:
+SQL> connect des03/des03;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION findAge(p_person_birthday_date IN DATE) RETURN NUMBER AS
+  2  
+  3  v_age_in_days NUMBER;
+  4  v_age_in_years NUMBER;
+  5  
+  6  BEGIN
+  7  
+  8  v_age_in_days := SYSDATE - TO_DATE(p_person_birthday_date);
+  9  v_age_in_years := FLOOR(v_age_in_days / 365.28);
+ 10  
+ 11  RETURN v_age_in_years;
+ 12  END;
+ 13  /
+
+Function created.
+
+SQL> show error;
+No errors.
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE displayStudentInfos(p_student_id_in IN NUMBER) AS
+  2  
+  3  v_first_name VARCHAR2(30);
+  4  v_last_name VARCHAR2(30);
+  5  v_birthdate DATE;
+  6  v_age NUMBER;
+  7  
+  8  BEGIN
+  9  
+ 10  SELECT s_first, s_last, s_dob
+ 11  INTO v_first_name, v_last_name, v_birthdate
+ 12  FROM student
+ 13  WHERE s_id = p_student_id_in;
+ 14  
+ 15  v_age := findAge(v_birthdate);
+ 16  
+ 17  DBMS_OUTPUT.PUT_LINE('Student name is: ' || v_first_name || ' ' || v_last_name || ', student birthdate is: ' || v_birthdate || ', and student age is: ' || v_age);
+ 18  
+ 19  EXCEPTION
+ 20  
+ 21  WHEN NO_DATA_FOUND THEN
+ 22  DBMS_OUTPUT.PUT_LINE('No student found with ID # : ' || p_student_id_in);
+ 23  WHEN OTHERS THEN
+ 24  DBMS_OUTPUT.PUT_LINE('An error has occured.');
+ 25  
+ 26  END;
+ 27  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> -- TEST 1 :
+SQL> EXEC displayStudentInfos(1);
+Student name is: Sarah Miller, student birthdate is: 85-07-14, and student age is: 36                                                                                               
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 2 :
+SQL> EXEC displayStudentInfos(2);
+Student name is: Brian Umato, student birthdate is: 85-08-19, and student age is: 36                                                                                                
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 3 :
+SQL> EXEC displayStudentInfos(6);
+Student name is: Michael Connoly, student birthdate is: 86-12-04, and student age is: 35                                                                                            
+
+PL/SQL procedure successfully completed.
+
+SQL> -- TEST 4 : Student ID does not exist
+SQL> EXEC displayStudentInfos(999);
+No student found with ID # : 999                                                                                                                                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> ---------------------------------------------------------------------------------------------------------
+SQL> 
+SQL> 
+SQL> 
+SQL> -- QUESTION 4
+SQL> connect des04/des04;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE FUNCTION does_Skill_SkillID_Exist(p_skill_id NUMBER) RETURN BOOLEAN AS
+  2  
+  3  COUNTER NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  SELECT COUNT(*)
+  8  INTO COUNTER
+  9  FROM skill
+ 10  WHERE (skill_id = p_skill_id);
+ 11  
+ 12  IF( COUNTER = 0 )
+ 13    THEN
+ 14  RETURN FALSE;
+ 15  ELSE
+ 16  RETURN TRUE;
+ 17  END IF;
+ 18  END;
+ 19  /
+
+Function created.
+
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION does_Consultant_CID_Exist(p_consultant_id NUMBER) RETURN BOOLEAN AS
+  2  
+  3  COUNTER NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  SELECT COUNT(*)
+  8  INTO COUNTER
+  9  FROM consultant
+ 10  WHERE (c_id = p_consultant_id);
+ 11  
+ 12  IF( COUNTER = 0 )
+ 13    THEN
+ 14  RETURN FALSE;
+ 15  ELSE
+ 16  RETURN TRUE;
+ 17  END IF;
+ 18  END;
+ 19  /
+
+Function created.
+
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION does_CID_SKILLID_MatchExist(p_consultant_id NUMBER, p_skill_id NUMBER) RETURN BOOLEAN AS
+  2  
+  3  COUNTER NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  SELECT COUNT(*)
+  8  INTO COUNTER
+  9  FROM consultant_skill
+ 10  WHERE (c_id = p_consultant_id) AND (skill_id = p_skill_id);
+ 11  
+ 12  IF( COUNTER = 0 )
+ 13    THEN
+ 14  RETURN FALSE;
+ 15  ELSE
+ 16  RETURN TRUE;
+ 17  END IF;
+ 18  END;
+ 19  /
+
+Function created.
+
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE insert_or_update(p_consultant_id IN NUMBER, p_skillid IN NUMBER, p_certification_status IN VARCHAR2) AS
+  2  
+  3  v_c_id_match NUMBER;
+  4  v_certification VARCHAR2(20);
+  5  v_consultant_first_name VARCHAR2(30);
+  6  v_consultant_last_name VARCHAR2(30);
+  7  v_skill_description VARCHAR2(50);
+  8  
+  9  BEGIN
+ 10  
+ 11  CASE
+ 12  WHEN p_certification_status = 'Y' THEN
+ 13  v_certification := v_certification;
+ 14  
+ 15  WHEN p_certification_status = 'N' THEN
+ 16  v_certification := v_certification;
+ 17  END CASE;
+ 18  
+ 19  IF (does_Consultant_CID_Exist(p_consultant_id) = FALSE) AND (does_Skill_SkillID_Exist(p_skillid) = FALSE) THEN
+ 20  DBMS_OUTPUT.PUT_LINE('Both Consultant ID and skill ID are not present in the database.');
+ 21  
+ 22  ELSIF does_Consultant_CID_Exist(p_consultant_id) = FALSE THEN
+ 23  DBMS_OUTPUT.PUT_LINE('Consultant Id input is not present in the database.');
+ 24  
+ 25  ELSIF does_Skill_SkillID_Exist(p_skillid) = FALSE THEN
+ 26  DBMS_OUTPUT.PUT_LINE('Skill ID input is not present in the database.');
+ 27  
+ 28  ELSIF does_CID_SKILLID_MatchExist(p_consultant_id, p_skillid) = FALSE THEN
+ 29  INSERT
+ 30  INTO consultant_skill (c_id, skill_id, certification)
+ 31  VALUES (p_consultant_id, p_skillid, p_certification_status);
+ 32  
+ 33  DBMS_OUTPUT.PUT_LINE('New entry added to Database!');
+ 34  
+ 35  ELSE
+ 36  UPDATE consultant_skill
+ 37  SET c_id = p_consultant_id,
+ 38  skill_id = p_skillid,
+ 39  certification = p_certification_status
+ 40  WHERE (c_id = p_consultant_id) AND (skill_id = p_skillid);
+ 41  
+ 42  DBMS_OUTPUT.PUT_LINE('Database Updated!');
+ 43  
+ 44  END IF;
+ 45  
+ 46  SELECT c_first, c_last
+ 47  INTO v_consultant_first_name, v_consultant_last_name
+ 48  FROM consultant
+ 49  WHERE c_id = p_consultant_id;
+ 50  
+ 51  SELECT skill_description
+ 52  INTO v_skill_description
+ 53  FROM skill
+ 54  WHERE skill_id = p_skillid;
+ 55  
+ 56  DBMS_OUTPUT.PUT_LINE('Consultant first name: ' || v_consultant_first_name || ' - Consultant last name: ' || v_consultant_last_name || ' - Skill Description: ' || v_skill_description);
+ 57  
+ 58  COMMIT;
+ 59  
+ 60  EXCEPTION
+ 61  WHEN NO_DATA_FOUND THEN
+ 62  DBMS_OUTPUT.PUT_LINE('Warning - An attempt to retrieve a specific data from the database has failed. Look for previous error message.');
+ 63  WHEN CASE_NOT_FOUND THEN
+ 64  DBMS_OUTPUT.PUT_LINE('Certification input incorrect. It should be either Y or N .');
+ 65  WHEN OTHERS THEN
+ 66  DBMS_OUTPUT.PUT_LINE('An error has occured. ');
+ 67  
+ 68  END;
+ 69  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> SELECT * FROM consultant_skill;
+
+      C_ID   SKILL_ID CERTIFIC                                                                                                                                                      
+---------- ---------- --------                                                                                                                                                      
+       100          1 Y                                                                                                                                                             
+       100          3 N                                                                                                                                                             
+       100          6 Y                                                                                                                                                             
+       101          4 N                                                                                                                                                             
+       101          5 N                                                                                                                                                             
+       102          7 Y                                                                                                                                                             
+       103          1 Y                                                                                                                                                             
+       103          6 Y                                                                                                                                                             
+       103          8 Y                                                                                                                                                             
+       103          9 Y                                                                                                                                                             
+       104          8 N                                                                                                                                                             
+       104          9 Y                                                                                                                                                             
+       105          2 N                                                                                                                                                             
+       105          3 N                                                                                                                                                             
+       105          4 Y                                                                                                                                                             
+       100          2 Y                                                                                                                                                             
+       102          8 Y                                                                                                                                                             
+
+17 rows selected.
+
+SQL> 
+SQL> EXEC insert_or_update(100,2,'N');
+Database Updated!                                                                                                                                                                   
+Consultant first name: Mark - Consultant last name: Myers - Skill Description: COBOL Programming                                                                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(100,2,'N');
+Database Updated!                                                                                                                                                                   
+Consultant first name: Mark - Consultant last name: Myers - Skill Description: COBOL Programming                                                                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(100,2,'Y');
+Database Updated!                                                                                                                                                                   
+Consultant first name: Mark - Consultant last name: Myers - Skill Description: COBOL Programming                                                                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(100,2,'ZZZ');
+Certification input incorrect. It should be either Y or N .                                                                                                                         
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(101,2,'ZZZZ');
+Certification input incorrect. It should be either Y or N .                                                                                                                         
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(102,8,'Y');
+Database Updated!                                                                                                                                                                   
+Consultant first name: Brian - Consultant last name: Zhang - Skill Description: Windows NT/2000 Network Administration                                                              
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(99999999,8,'Y');
+Consultant Id input is not present in the database.                                                                                                                                 
+Warning - An attempt to retrieve a specific data from the database has failed. Look for previous error message.                                                                     
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(104,999999999,'Y');
+Skill ID input is not present in the database.                                                                                                                                      
+Warning - An attempt to retrieve a specific data from the database has failed. Look for previous error message.                                                                     
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(9999999999999999,81231231231123,'Z');
+Certification input incorrect. It should be either Y or N .                                                                                                                         
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC insert_or_update(9999999999999999,81231231231123,'Y');
+Both Consultant ID and skill ID are not present in the database.                                                                                                                    
+Warning - An attempt to retrieve a specific data from the database has failed. Look for previous error message.                                                                     
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT * FROM consultant_skill;
+
+      C_ID   SKILL_ID CERTIFIC                                                                                                                                                      
+---------- ---------- --------                                                                                                                                                      
+       100          1 Y                                                                                                                                                             
+       100          3 N                                                                                                                                                             
+       100          6 Y                                                                                                                                                             
+       101          4 N                                                                                                                                                             
+       101          5 N                                                                                                                                                             
+       102          7 Y                                                                                                                                                             
+       103          1 Y                                                                                                                                                             
+       103          6 Y                                                                                                                                                             
+       103          8 Y                                                                                                                                                             
+       103          9 Y                                                                                                                                                             
+       104          8 N                                                                                                                                                             
+       104          9 Y                                                                                                                                                             
+       105          2 N                                                                                                                                                             
+       105          3 N                                                                                                                                                             
+       105          4 Y                                                                                                                                                             
+       100          2 Y                                                                                                                                                             
+       102          8 Y                                                                                                                                                             
+
+17 rows selected.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> SPOOL OFF

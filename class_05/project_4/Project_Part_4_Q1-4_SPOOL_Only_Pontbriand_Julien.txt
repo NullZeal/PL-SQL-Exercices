@@ -1,0 +1,214 @@
+SQL> -- QUESTION 1
+SQL> connect scott/tiger;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE p4q1 (p_number1 IN NUMBER, p_number2 IN NUMBER, p_string OUT VARCHAR2) AS
+  2  
+  3  BEGIN
+  4  
+  5  IF p_number1 = p_number2 THEN
+  6  p_string := 'EQUAL';
+  7  
+  8  ELSE
+  9  p_string := 'DIFFERENT';
+ 10  END IF;
+ 11  END;
+ 12  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE L8Q1 (p_side1 IN NUMBER, p_side2 IN NUMBER) AS
+  2  v_perimeter NUMBER;
+  3  v_area NUMBER;
+  4  v_form_name VARCHAR2(20);
+  5  
+  6  BEGIN
+  7  v_perimeter := (p_side1 * 2) + (p_side2 *2);
+  8  v_area := p_side1 * p_side2;
+  9  p4q1(p_side1, p_side2, v_form_name);
+ 10  
+ 11  IF v_form_name = 'EQUAL' THEN
+ 12  v_form_name := 'square';
+ 13  ELSE
+ 14  v_form_name := 'rectangle';
+ 15  END IF;
+ 16  
+ 17  DBMS_OUTPUT.PUT_LINE('The area of a ' || v_form_name || ' of size ' || p_side1 || ' by ' || p_side2 || ' is: ' || v_area || '. Its perimeter is ' || v_perimeter);
+ 18  END;
+ 19  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> 
+SQL> EXEC L8Q1(2,2);
+The area of a square of size 2 by 2 is: 4. Its perimeter is 8                   
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC L8Q1(2,3);
+The area of a rectangle of size 2 by 3 is: 6. Its perimeter is 10               
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- QUESTION 2
+SQL> connect scott/tiger;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE pseudo_fun (p_width_in_area_out IN OUT NUMBER, p_height_in_perimeter_out IN OUT NUMBER) AS
+  2  
+  3  v_area NUMBER;
+  4  v_perimeter NUMBER;
+  5  
+  6  BEGIN
+  7  
+  8  v_area := p_width_in_area_out * p_height_in_perimeter_out;
+  9  v_perimeter := p_width_in_area_out * 2 + p_height_in_perimeter_out * 2;
+ 10  
+ 11  p_width_in_area_out := v_area;
+ 12  p_height_in_perimeter_out := v_perimeter;
+ 13  
+ 14  END;
+ 15  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE L4Q2 (p_width IN NUMBER, p_height IN NUMBER) AS
+  2  
+  3  v_width NUMBER := p_width;
+  4  v_height NUMBER := p_height;
+  5  
+  6  v_area NUMBER;
+  7  v_perimeter NUMBER;
+  8  v_form_name VARCHAR2(20);
+  9  
+ 10  BEGIN
+ 11  
+ 12  IF v_width = v_height THEN
+ 13  v_form_name := 'square';
+ 14  ELSE
+ 15  v_form_name := 'rectangle';
+ 16  END IF;
+ 17  
+ 18  pseudo_fun(v_width, v_height);
+ 19  
+ 20  DBMS_OUTPUT.PUT_LINE('The area of a ' || v_form_name || ' is ' || v_width || '. Its perimeter is: ' || v_height);
+ 21  END;
+ 22  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> EXEC l4q2(2,2);
+The area of a square is 4. Its perimeter is: 8                                  
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC l4q2(2,3);
+The area of a rectangle is 6. Its perimeter is: 10                              
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- -- QUESTION 3
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON;
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE price_updater(p_invid_in_price_out in out number, p_percentincrease_in_qoh_out in out number) as
+  2  
+  3  v_updated_price NUMBER;
+  4  v_qoh NUMBER;
+  5  
+  6  BEGIN
+  7  
+  8  UPDATE inventory
+  9  SET inv_price = inv_price * ((p_percentIncrease_in_qoh_out/100) + 1)
+ 10  WHERE inv_id = p_invId_in_price_out;
+ 11  
+ 12  SELECT inv_price
+ 13  INTO v_updated_price
+ 14  FROM inventory
+ 15  WHERE inv_id = p_invid_in_price_out;
+ 16  
+ 17  SELECT inv_qoh
+ 18  INTO v_qoh
+ 19  FROM inventory
+ 20  WHERE inv_id = p_invid_in_price_out;
+ 21  
+ 22  p_invid_in_price_out := v_updated_price;
+ 23  p_percentincrease_in_qoh_out := v_qoh;
+ 24  
+ 25  COMMIT;
+ 26  
+ 27  END;
+ 28  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE l4q3 (p_invId IN NUMBER, p_percentIncrease IN NUMBER) AS
+  2  
+  3  v_invId NUMBER;
+  4  v_percentIncrease NUMBER;
+  5  v_value NUMBER;
+  6  
+  7  BEGIN
+  8  
+  9  v_invId := p_invId;
+ 10  v_percentIncrease := p_percentIncrease;
+ 11  
+ 12  price_updater(v_invId, v_percentIncrease);
+ 13  
+ 14  v_value := v_invId * v_percentIncrease;
+ 15  
+ 16  DBMS_OUTPUT.PUT_LINE ('The new value in the inventory is: $CA ' || v_value);
+ 17  
+ 18  END;
+ 19  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> --price before
+SQL> SELECT inv_id, inv_price, inv_qoh FROM INVENTORY WHERE inv_id = 1;
+
+    INV_ID  INV_PRICE    INV_QOH                                                
+---------- ---------- ----------                                                
+         1     674.37         16                                                
+
+SQL> 
+SQL> EXEC l4q3(1,10);
+The new value in the inventory is: $CA 11868.96                                 
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --price after
+SQL> SELECT inv_id, inv_price, inv_qoh FROM INVENTORY WHERE inv_id = 1;
+
+    INV_ID  INV_PRICE    INV_QOH                                                
+---------- ---------- ----------                                                
+         1     741.81         16                                                
+
+SQL> SPOOL OFF

@@ -1,0 +1,290 @@
+SQL> connect admin/admin
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> --Q1
+SQL> CREATE OR REPLACE FUNCTION productCalculator(p_num1_in IN NUMBER, p_num2_in IN NUMBER) RETURN NUMBER AS
+  2  v_result NUMBER;
+  3  BEGIN
+  4  v_result := p_num1_in * p_num2_in;
+  5  RETURN v_result;
+  6  END;
+  7  /
+
+Function created.
+
+SQL> SELECT productCalculator(10,10) FROM dual;
+
+PRODUCTCALCULATOR(10,10)                                                        
+------------------------                                                        
+                     100                                                        
+
+SQL> 
+SQL> 
+SQL> --Q2
+SQL> CREATE OR REPLACE PROCEDURE areaCalculator (p_width_in IN NUMBER, p_height_in IN NUMBER) AS
+  2  v_result NUMBER;
+  3  BEGIN
+  4  v_result := productCalculator(p_width_in, p_height_in);
+  5  DBMS_OUTPUT.PUT_LINE('For a rectangle of size ' || p_width_in || ' by ' || p_height_in || ' the area is ' || v_result);
+  6  END;
+  7  /
+
+Procedure created.
+
+SQL> exec areaCalculator(10,10);
+For a rectangle of size 10 by 10 the area is 100                                
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --Q3
+SQL> CREATE OR REPLACE PROCEDURE areaCalculator2 (p_width_in IN NUMBER, p_height_in IN NUMBER) AS
+  2  v_result NUMBER;
+  3  BEGIN
+  4  v_result := productCalculator(p_width_in, p_height_in);
+  5  IF p_width_in = p_height_in THEN
+  6  DBMS_OUTPUT.PUT_LINE('For a square of size ' || p_width_in || ' by ' || p_height_in || ' the area is ' || v_result);
+  7  ELSE
+  8  DBMS_OUTPUT.PUT_LINE('For a rectangle of size ' || p_width_in || ' by ' || p_height_in || ' the area is ' || v_result);
+  9  END IF;
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> exec areaCalculator2(10,10);
+For a square of size 10 by 10 the area is 100                                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- Q4
+SQL> CREATE OR REPLACE PROCEDURE convertMoney(p_cadAmount_in IN NUMBER, p_newCurrencyLetter_in IN VARCHAR2) AS
+  2  v_convertedAmount NUMBER;
+  3  v_convertedCurrencyName VARCHAR2(50);
+  4  
+  5  BEGIN
+  6  
+  7  IF p_newCurrencyLetter_in = 'E' THEN
+  8  v_convertedAmount := p_cadAmount_in * 1.5;
+  9  v_convertedCurrencyName := 'EURO';
+ 10  
+ 11  ELSIF p_newCurrencyLetter_in = 'Y' THEN
+ 12  v_convertedAmount := p_cadAmount_in * 100;
+ 13  v_convertedCurrencyName := 'YEN';
+ 14  
+ 15  ELSIF p_newCurrencyLetter_in = 'V' THEN
+ 16  v_convertedAmount := p_cadAmount_in * 10000;
+ 17  v_convertedCurrencyName := 'Viet Nam DONG';
+ 18  
+ 19  ELSIF p_newCurrencyLetter_in = 'Z' THEN
+ 20  v_convertedAmount := p_cadAmount_in * 1000000;
+ 21  v_convertedCurrencyName := 'Endora ZIP';
+ 22  END IF;
+ 23  
+ 24  DBMS_OUTPUT.PUT_LINE('FOR ' || p_cadAmount_in || ' dollars Canadian, you will have ' || v_convertedAmount || ' ' || v_convertedCurrencyName);
+ 25  END;
+ 26  /
+
+Procedure created.
+
+SQL> EXEC convertMoney(100,'E');
+FOR 100 dollars Canadian, you will have 150 EURO                                
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- QUESTION 5
+SQL> CREATE OR REPLACE FUNCTION YES_EVEN(p_number_in IN NUMBER) RETURN BOOLEAN AS
+  2  BEGIN
+  3  IF MOD(p_number_in, 2) = 0 THEN
+  4  RETURN TRUE;
+  5  ELSE
+  6  RETURN FALSE;
+  7  END IF;
+  8  END;
+  9  /
+
+Function created.
+
+SQL> 
+SQL> 
+SQL> -- QUESTION 6
+SQL> CREATE OR REPLACE PROCEDURE isEvenOrOdd (p_number_in IN NUMBER) AS
+  2  BEGIN
+  3  IF YES_EVEN(p_number_in) = TRUE THEN
+  4  DBMS_OUTPUT.PUT_LINE('NUMBER '|| p_number_in || ' is EVEN');
+  5  ELSE
+  6  DBMS_OUTPUT.PUT_LINE('NUMBER '|| p_number_in || ' is ODD');
+  7  END IF;
+  8  END;
+  9  /
+
+Procedure created.
+
+SQL> EXEC isEvenOrOdd(1111);
+NUMBER 1111 is ODD                                                              
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC isEvenOrOdd(100);
+NUMBER 100 is EVEN                                                              
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- QUESTION BONUS
+SQL> CREATE OR REPLACE PROCEDURE convertMoneyAnyWay(p_initialCurrencyAmount_in IN NUMBER, p_initialCurrencyLetter_in IN VARCHAR2, p_newCurrencyLetter_in IN VARCHAR2) AS
+  2  
+  3  v_initialCurrencyAmountInCAD NUMBER;
+  4  v_initialCurrencyName VARCHAR2(50);
+  5  
+  6  v_convertedAmount NUMBER;
+  7  v_newCurrencyName VARCHAR2(50);
+  8  
+  9  BEGIN
+ 10  
+ 11  IF p_initialCurrencyLetter_in = 'C' THEN
+ 12  
+ 13  v_initialCurrencyAmountInCAD := p_initialCurrencyAmount_in;
+ 14  v_initialCurrencyName := 'CAD Dollar';
+ 15  
+ 16  IF p_newCurrencyLetter_in = 'E' THEN
+ 17  v_convertedAmount := v_initialCurrencyAmountInCAD * 1.5;
+ 18  v_newCurrencyName := 'EURO';
+ 19  
+ 20  ELSIF p_newCurrencyLetter_in = 'Y' THEN
+ 21  v_convertedAmount := v_initialCurrencyAmountInCAD * 100;
+ 22  v_newCurrencyName := 'YEN';
+ 23  
+ 24  ELSIF p_newCurrencyLetter_in = 'V' THEN
+ 25  v_convertedAmount := v_initialCurrencyAmountInCAD * 10000;
+ 26  v_newCurrencyName := 'Viet Nam DONG';
+ 27  
+ 28  ELSIF p_newCurrencyLetter_in = 'Z' THEN
+ 29  v_convertedAmount := v_initialCurrencyAmountInCAD * 1000000;
+ 30  v_newCurrencyName := 'Endora ZIP';
+ 31  END IF;
+ 32  
+ 33  ELSIF p_initialCurrencyLetter_in = 'E' THEN
+ 34  
+ 35  v_initialCurrencyAmountInCAD := p_initialCurrencyAmount_in / 1.5;
+ 36  v_initialCurrencyName := 'EURO';
+ 37  
+ 38  IF p_newCurrencyLetter_in = 'C' THEN
+ 39  v_convertedAmount := v_initialCurrencyAmountInCAD;
+ 40  v_newCurrencyName := 'dollars Canadian';
+ 41  
+ 42  ELSIF p_newCurrencyLetter_in = 'Y' THEN
+ 43  v_convertedAmount := v_initialCurrencyAmountInCAD * 100;
+ 44  v_newCurrencyName := 'YEN';
+ 45  
+ 46  ELSIF p_newCurrencyLetter_in = 'V' THEN
+ 47  v_convertedAmount := v_initialCurrencyAmountInCAD * 10000;
+ 48  v_newCurrencyName := 'Viet Nam DONG';
+ 49  
+ 50  ELSIF p_newCurrencyLetter_in = 'Z' THEN
+ 51  v_convertedAmount := v_initialCurrencyAmountInCAD * 1000000;
+ 52  v_newCurrencyName := 'Endora ZIP';
+ 53  END IF;
+ 54  
+ 55  ELSIF p_initialCurrencyLetter_in = 'Y' THEN
+ 56  
+ 57  v_initialCurrencyAmountInCAD := p_initialCurrencyAmount_in / 100;
+ 58  v_initialCurrencyName := 'YEN';
+ 59  
+ 60  IF p_newCurrencyLetter_in = 'C' THEN
+ 61  v_convertedAmount := v_initialCurrencyAmountInCAD;
+ 62  v_newCurrencyName := 'dollars Canadian';
+ 63  
+ 64  ELSIF p_newCurrencyLetter_in = 'E' THEN
+ 65  v_convertedAmount := v_initialCurrencyAmountInCAD * 1.5;
+ 66  v_newCurrencyName := 'EURO';
+ 67  
+ 68  ELSIF p_newCurrencyLetter_in = 'V' THEN
+ 69  v_convertedAmount := v_initialCurrencyAmountInCAD * 10000;
+ 70  v_newCurrencyName := 'Viet Nam DONG';
+ 71  
+ 72  ELSIF p_newCurrencyLetter_in = 'Z' THEN
+ 73  v_convertedAmount := v_initialCurrencyAmountInCAD * 1000000;
+ 74  v_newCurrencyName := 'Endora ZIP';
+ 75  END IF;
+ 76  
+ 77  ELSIF p_initialCurrencyLetter_in = 'V' THEN
+ 78  
+ 79  v_initialCurrencyAmountInCAD := p_initialCurrencyAmount_in / 10000;
+ 80  v_initialCurrencyName := 'Viet Nam DONG';
+ 81  
+ 82  IF p_newCurrencyLetter_in = 'C' THEN
+ 83  v_convertedAmount := v_initialCurrencyAmountInCAD;
+ 84  v_newCurrencyName := 'dollars Canadian';
+ 85  
+ 86  ELSIF p_newCurrencyLetter_in = 'E' THEN
+ 87  v_convertedAmount := v_initialCurrencyAmountInCAD * 1.5;
+ 88  v_newCurrencyName := 'EURO';
+ 89  
+ 90  ELSIF p_newCurrencyLetter_in = 'Y' THEN
+ 91  v_convertedAmount := v_initialCurrencyAmountInCAD * 100;
+ 92  v_newCurrencyName := 'YEN';
+ 93  
+ 94  ELSIF p_newCurrencyLetter_in = 'Z' THEN
+ 95  v_convertedAmount := v_initialCurrencyAmountInCAD * 1000000;
+ 96  v_newCurrencyName := 'Endora ZIP';
+ 97  END IF;
+ 98  
+ 99  ELSIF p_initialCurrencyLetter_in = 'Z' THEN
+100  
+101  v_initialCurrencyAmountInCAD := p_initialCurrencyAmount_in / 1000000;
+102  v_initialCurrencyName := 'Endora ZIP';
+103  
+104  IF p_newCurrencyLetter_in = 'C' THEN
+105  v_convertedAmount := v_initialCurrencyAmountInCAD;
+106  v_newCurrencyName := 'dollars Canadian';
+107  
+108  ELSIF p_newCurrencyLetter_in = 'E' THEN
+109  v_convertedAmount := v_initialCurrencyAmountInCAD * 1.5;
+110  v_newCurrencyName := 'EURO';
+111  
+112  ELSIF p_newCurrencyLetter_in = 'Y' THEN
+113  v_convertedAmount := v_initialCurrencyAmountInCAD * 100;
+114  v_newCurrencyName := 'YEN';
+115  
+116  ELSIF p_newCurrencyLetter_in = 'V' THEN
+117  v_convertedAmount := v_initialCurrencyAmountInCAD * 10000;
+118  v_newCurrencyName := 'Viet Nam DONG';
+119  END IF;
+120  END IF;
+121  
+122  DBMS_OUTPUT.PUT_LINE('FOR ' || p_initialCurrencyAmount_in || ' ' || v_initialCurrencyName || ', you will have ' || v_convertedAmount || ' ' || v_newCurrencyName);
+123  END;
+124  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC convertMoneyAnyWay(100,'E', 'Z');
+FOR 100 EURO, you will have 66666666.66666666666666666666666666666667 Endora ZIP
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC convertMoneyAnyWay(100,'Z', 'V');
+FOR 100 Endora ZIP, you will have 1 Viet Nam DONG                               
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC convertMoneyAnyWay(100,'V', 'Z');
+FOR 100 Viet Nam DONG, you will have 10000 Endora ZIP                           
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC convertMoneyAnyWay(100,'Y', 'E');
+FOR 100 YEN, you will have 1.5 EURO                                             
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF
