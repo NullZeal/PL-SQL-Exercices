@@ -18,7 +18,10 @@ FETCH data_cursor
 	INTO v_term_id, v_term_desc, v_status;
 	
 WHILE data_cursor%FOUND LOOP
-DBMS_OUTPUT.PUT_LINE('ID : ' || v_term_id || ' --- Desc : ' || v_term_desc || ' --- Status : ' || v_status);
+DBMS_OUTPUT.PUT_LINE('============');
+DBMS_OUTPUT.PUT_LINE('ID : ' || v_term_id);
+DBMS_OUTPUT.PUT_LINE('Desc : ' || v_term_desc);
+DBMS_OUTPUT.PUT_LINE('Status : ' || v_status);
 FETCH data_cursor INTO v_term_id, v_term_desc, v_status;
 END LOOP;
 
