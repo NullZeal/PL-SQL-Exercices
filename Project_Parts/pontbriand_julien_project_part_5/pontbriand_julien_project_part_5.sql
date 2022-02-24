@@ -27,10 +27,6 @@ END LOOP;
 
 CLOSE data_cursor;
 
-EXCEPTION 
-WHEN NO_DATA_FOUND THEN
-DBMS_OUTPUT.PUT_LINE('Data request error for term table.');
-
 END;
 /
 show error
