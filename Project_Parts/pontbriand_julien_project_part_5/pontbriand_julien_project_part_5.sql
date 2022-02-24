@@ -72,7 +72,7 @@ CLOSE data_cursor;
 
 END;
 /
-
+show error;
 EXEC show_data_2;
 
 
@@ -99,7 +99,7 @@ OPEN item_curr;
 
 FETCH item_curr INTO v_id, v_price;
 	WHILE item_curr%FOUND LOOP
-			v_new_price := v_price + v_price * p_percent/100;
+			v_new_price := v_price + v_price * (p_percent/100);
 			UPDATE inventory SET inv_price = v_new_price WHERE item_id = v_id;
 			DBMS_OUTPUT.PUT_LINE('Item ID # ' || v_id || ' had a price of : ' || v_price || ' that has changed to :' || v_new_price);
 
@@ -108,7 +108,7 @@ FETCH item_curr INTO v_id, v_price;
 CLOSE item_curr;
 END;
 /
-
+show error;
 EXEC itemPriceUpdater(10);
 
 --Q4
