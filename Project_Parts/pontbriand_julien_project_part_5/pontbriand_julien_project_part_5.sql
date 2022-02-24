@@ -150,3 +150,56 @@ show error
 EXEC show_highest_paid_employees(2);
 	
 	
+--Q5
+
+connect scott/tiger
+SET SERVEROUTPUT ON
+
+CREATE OR REPLACE PROCEDURE show_top$_emp_for_x_top_sal(p_amountOftopSalaries IN NUMBER) AS
+
+CURSOR empCurr IS
+	SELECT ename, sal 
+		FROM emp
+			ORDER BY sal DESC;
+			
+v_ename emp.ename%TYPE;
+v_sal emp.sal%TYPE;
+
+v_value_checker NUMBER;
+v_counter NUMBER;
+
+BEGIN
+
+v_counter := 0;
+v_value_checker := 0;
+
+OPEN empCurr;
+
+	WHILE v_counter <= p_amountOftopSalaries 
+			AND p_amountOftopSalaries > 0 
+			
+			LOOP
+				FETCH empCurr INTO v_ename, v_sal;
+				IF empCurr%FOUND THEN
+					IF v_value_checker NOT LIKE v_sal THEN
+						v_counter := v_counter + 1;
+						v_value_checker := v_sal;
+						IF v_counter <= p_amountOftopSalaries THEN
+							DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+						END IF;
+					ELSE
+						DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+					END IF;
+				ELSE v_counter := p_amountOftopSalaries +1;
+				END IF;
+			END LOOP;	
+			
+CLOSE empCUrr;
+END;
+/
+show error
+
+EXEC show_top$_emp_for_x_top_sal(2);
+EXEC show_top$_emp_for_x_top_sal(10);
+
+
