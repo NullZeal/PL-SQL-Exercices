@@ -84,11 +84,12 @@ SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE itemPriceUpdater(p_percent IN NUMBER) AS
 
 CURSOR item_curr IS 
-	SELECT i.item_id, i.inv_price
+	SELECT i.inv_id, i.item_id, i.inv_price
 		FROM inventory i
 			JOIN item it
 				ON i.item_id = it.item_id;
 				
+v_inv_id inventory.inv_id%TYPE;				
 v_id inventory.item_id%TYPE;				
 v_price inventory.inv_price%TYPE;
 v_new_price NUMBER;
@@ -97,13 +98,18 @@ BEGIN
 
 OPEN item_curr;
 
-FETCH item_curr INTO v_id, v_price;
+FETCH item_curr INTO v_inv_id, v_id, v_price;
 	WHILE item_curr%FOUND LOOP
 			v_new_price := v_price + v_price * (p_percent/100);
 			UPDATE inventory SET inv_price = v_new_price WHERE item_id = v_id;
-			DBMS_OUTPUT.PUT_LINE('Item ID # ' || v_id || ' had a price of : ' || v_price || ' that has changed to :' || v_new_price);
+			DBMS_OUTPUT.PUT_LINE('==================');
+			DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id);
+			DBMS_OUTPUT.PUT_LINE('Item ID #: ' || v_id);
+			DBMS_OUTPUT.PUT_LINE('Old price: $CAD ' || v_price);
+			DBMS_OUTPUT.PUT_LINE('Increase in % : ' || p_percent);
+			DBMS_OUTPUT.PUT_LINE('New price: $CAD ' || v_new_price);
 
-		FETCH item_curr INTO v_id, v_price;
+		FETCH item_curr INTO v_inv_id, v_id, v_price;
 	END LOOP;
 CLOSE item_curr;
 END;
@@ -119,9 +125,6 @@ SET SERVEROUTPUT ON
 CREATE OR REPLACE A PROCEDURE show_highest_paid_employee(p_amountOfTopPaidEmployees IN NUMBER) AS
 
 CURSOR empCurr IS
-
-
-
 
 Create a procedure that accepts a number represent the number of employees
 who earns the highest salary. Display employee name and his/her salary
