@@ -3,7 +3,7 @@ SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE show_data AS
 
 CURSOR data_cursor IS
-	SELECT term_id, term_desc, status
+	SELECT term_id, NVL(term_desc, 'Unknown Season and Year'), NVL(status, 'Unknown Status')
 		FROM term;
 		
 v_term_id term.term_id%TYPE;
@@ -27,9 +27,13 @@ END LOOP;
 
 CLOSE data_cursor;
 
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.PUT_LINE('Data request error for term table.');
+
 END;
 /
-
+show error
 EXEC show_data;
 
 
