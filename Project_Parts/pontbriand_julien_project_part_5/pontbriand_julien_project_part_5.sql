@@ -122,22 +122,31 @@ EXEC itemPriceUpdater(10);
 connect scott/tiger
 SET SERVEROUTPUT ON
 
-CREATE OR REPLACE A PROCEDURE show_highest_paid_employee(p_amountOfTopPaidEmployees IN NUMBER) AS
+CREATE OR REPLACE PROCEDURE show_highest_paid_employees(p_empAmountToDisplay IN NUMBER) AS
 
 CURSOR empCurr IS
+	SELECT ename, sal 
+		FROM emp
+			ORDER BY sal DESC;
+			
+v_ename emp.ename%TYPE;
+v_sal emp.sal%TYPE;
 
-Create a procedure that accepts a number represent the number of employees
-who earns the highest salary. Display employee name and his/her salary
-Ex: SQL> exec L5Q4(2)
-SQL> top 2 employees are
-KING 5000
-FORD 3000
+BEGIN
 
+OPEN empCurr;
 
+FETCH empCurr INTO v_ename, v_sal;
+	FOR i IN 1..p_empAmountToDisplay LOOP
+		DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+		FETCH empCurr INTO v_ename, v_sal;
+	END LOOP;	
+			
+CLOSE empCUrr;
+END;
+/
+show error
 
-
-
-
-	
+EXEC show_highest_paid_employees(2);
 	
 	
