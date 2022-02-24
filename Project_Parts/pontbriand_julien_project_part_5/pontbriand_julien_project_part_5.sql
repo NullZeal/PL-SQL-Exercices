@@ -40,7 +40,7 @@ SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE show_data_2 AS
 
 CURSOR data_cursor IS
-	SELECT i.color, i.inv_price, i.inv_qoh, it.item_desc
+	SELECT i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
 		FROM inventory i
 			JOIN item it
 				ON i.item_id = it.item_id;
@@ -56,9 +56,14 @@ OPEN data_cursor;
 
 FETCH data_cursor
 	INTO v_color, v_price, v_qoh, v_desc;
-	
+
 WHILE data_cursor%FOUND LOOP
-DBMS_OUTPUT.PUT_LINE(' Item color : ' || v_color || ' --- Price : ' || v_price || ' --- QOH : ' || v_qoh || ' --- DESC : ' || v_desc);
+DBMS_OUTPUT.PUT_LINE('============');
+DBMS_OUTPUT.PUT_LINE(' Item color : ' || v_color);
+DBMS_OUTPUT.PUT_LINE('Price : ' || v_price);
+DBMS_OUTPUT.PUT_LINE('QOH : ' || v_qoh);
+DBMS_OUTPUT.PUT_LINE('DESC : ' || v_desc);
+
 FETCH data_cursor
 	INTO v_color, v_price, v_qoh, v_desc;
 END LOOP;
