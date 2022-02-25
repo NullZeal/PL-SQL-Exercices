@@ -1,0 +1,658 @@
+SQL> --Q1
+SQL> 
+SQL> connect des03/des03;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE show_data AS
+  2  
+  3  CURSOR data_cursor IS
+  4  SELECT term_id, NVL(term_desc, 'Unknown Season and Year'), NVL(status, 'Unknown Status')
+  5  FROM term;
+  6  
+  7  v_term_id term.term_id%TYPE;
+  8  v_term_desc term.term_desc%TYPE;
+  9  v_status term.status%TYPE;
+ 10  
+ 11  BEGIN
+ 12  
+ 13  OPEN data_cursor;
+ 14  
+ 15  FETCH data_cursor
+ 16  INTO v_term_id, v_term_desc, v_status;
+ 17  
+ 18  WHILE data_cursor%FOUND LOOP
+ 19  DBMS_OUTPUT.PUT_LINE('============');
+ 20  DBMS_OUTPUT.PUT_LINE('ID : ' || v_term_id);
+ 21  DBMS_OUTPUT.PUT_LINE('Desc : ' || v_term_desc);
+ 22  DBMS_OUTPUT.PUT_LINE('Status : ' || v_status);
+ 23  FETCH data_cursor INTO v_term_id, v_term_desc, v_status;
+ 24  END LOOP;
+ 25  
+ 26  CLOSE data_cursor;
+ 27  
+ 28  END;
+ 29  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> EXEC show_data;
+============                                                                    
+ID : 1                                                                          
+Desc : Fall 2005                                                                
+Status : CLOSED                                                                 
+============                                                                    
+ID : 2                                                                          
+Desc : Spring 2006                                                              
+Status : CLOSED                                                                 
+============                                                                    
+ID : 3                                                                          
+Desc : Summer 2006                                                              
+Status : CLOSED                                                                 
+============                                                                    
+ID : 4                                                                          
+Desc : Fall 2006                                                                
+Status : CLOSED                                                                 
+============                                                                    
+ID : 5                                                                          
+Desc : Spring 2007                                                              
+Status : CLOSED                                                                 
+============                                                                    
+ID : 6                                                                          
+Desc : Summer 2007                                                              
+Status : OPEN                                                                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- Q2
+SQL> 
+SQL> connect des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE show_data_2 AS
+  2  
+  3  CURSOR data_cursor IS
+  4  SELECT i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
+  5  FROM inventory i
+  6  JOIN item it
+  7  ON i.item_id = it.item_id;
+  8  
+  9  v_color inventory.color%TYPE;
+ 10  v_price inventory.inv_price%TYPE;
+ 11  v_qoh inventory.inv_price%TYPE;
+ 12  v_desc item.item_desc%TYPE;
+ 13  
+ 14  BEGIN
+ 15  
+ 16  OPEN data_cursor;
+ 17  
+ 18  FETCH data_cursor
+ 19  INTO v_color, v_price, v_qoh, v_desc;
+ 20  
+ 21  WHILE data_cursor%FOUND LOOP
+ 22  DBMS_OUTPUT.PUT_LINE('============');
+ 23  DBMS_OUTPUT.PUT_LINE(' Item color : ' || v_color);
+ 24  DBMS_OUTPUT.PUT_LINE('Price : ' || v_price);
+ 25  DBMS_OUTPUT.PUT_LINE('QOH : ' || v_qoh);
+ 26  DBMS_OUTPUT.PUT_LINE('DESC : ' || v_desc);
+ 27  
+ 28  FETCH data_cursor
+ 29  INTO v_color, v_price, v_qoh, v_desc;
+ 30  END LOOP;
+ 31  
+ 32  CLOSE data_cursor;
+ 33  
+ 34  END;
+ 35  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC show_data_2;
+============                                                                    
+Item color : Sky Blue                                                           
+Price : 506.66                                                                  
+QOH : 16                                                                        
+DESC : 3-Season Tent                                                            
+============                                                                    
+Item color : Light Grey                                                         
+Price : 506.66                                                                  
+QOH : 12                                                                        
+DESC : 3-Season Tent                                                            
+============                                                                    
+Item color : Khaki                                                              
+Price : 58.4                                                                    
+QOH : 150                                                                       
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Khaki                                                              
+Price : 58.4                                                                    
+QOH : 147                                                                       
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Khaki                                                              
+Price : 58.4                                                                    
+QOH : 0                                                                         
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Navy                                                               
+Price : 58.4                                                                    
+QOH : 139                                                                       
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Navy                                                               
+Price : 58.4                                                                    
+QOH : 137                                                                       
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Navy                                                               
+Price : 58.4                                                                    
+QOH : 115                                                                       
+DESC : Women's Hiking Shorts                                                    
+============                                                                    
+Item color : Eggplant                                                           
+Price : 116.85                                                                  
+QOH : 135                                                                       
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Eggplant                                                           
+Price : 116.85                                                                  
+QOH : 168                                                                       
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Eggplant                                                           
+Price : 116.85                                                                  
+QOH : 187                                                                       
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Royal                                                              
+Price : 116.85                                                                  
+QOH : 0                                                                         
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Royal                                                              
+Price : 116.85                                                                  
+QOH : 124                                                                       
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Royal                                                              
+Price : 116.85                                                                  
+QOH : 112                                                                       
+DESC : Women's Fleece Pullover                                                  
+============                                                                    
+Item color : Turquoise                                                          
+Price : 31.17                                                                   
+QOH : 121                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Turquoise                                                          
+Price : 31.17                                                                   
+QOH : 111                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Turquoise                                                          
+Price : 31.17                                                                   
+QOH : 113                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Turquoise                                                          
+Price : 31.17                                                                   
+QOH : 121                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Bright Pink                                                        
+Price : 31.17                                                                   
+QOH : 148                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Bright Pink                                                        
+Price : 31.17                                                                   
+QOH : 137                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Bright Pink                                                        
+Price : 31.17                                                                   
+QOH : 134                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Bright Pink                                                        
+Price : 31.17                                                                   
+QOH : 123                                                                       
+DESC : Children's Beachcomber Sandals                                           
+============                                                                    
+Item color : Spruce                                                             
+Price : 409.17                                                                  
+QOH : 114                                                                       
+DESC : Men's Expedition Parka                                                   
+============                                                                    
+Item color : Spruce                                                             
+Price : 409.17                                                                  
+QOH : 17                                                                        
+DESC : Men's Expedition Parka                                                   
+============                                                                    
+Item color : Spruce                                                             
+Price : 409.17                                                                  
+QOH : 0                                                                         
+DESC : Men's Expedition Parka                                                   
+============                                                                    
+Item color : Spruce                                                             
+Price : 409.17                                                                  
+QOH : 12                                                                        
+DESC : Men's Expedition Parka                                                   
+============                                                                    
+Item color : Blue                                                               
+Price : 31.1                                                                    
+QOH : 50                                                                        
+DESC : Boy's Surf Shorts                                                        
+============                                                                    
+Item color : Blue                                                               
+Price : 31.1                                                                    
+QOH : 100                                                                       
+DESC : Boy's Surf Shorts                                                        
+============                                                                    
+Item color : Blue                                                               
+Price : 31.1                                                                    
+QOH : 100                                                                       
+DESC : Boy's Surf Shorts                                                        
+============                                                                    
+Item color : White                                                              
+Price : 38.96                                                                   
+QOH : 100                                                                       
+DESC : Girl's Soccer Tee                                                        
+============                                                                    
+Item color : White                                                              
+Price : 38.96                                                                   
+QOH : 100                                                                       
+DESC : Girl's Soccer Tee                                                        
+============                                                                    
+Item color : White                                                              
+Price : 38.96                                                                   
+QOH : 100                                                                       
+DESC : Girl's Soccer Tee                                                        
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --Q3
+SQL> 
+SQL> connect des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE itemPriceUpdater(p_percent IN NUMBER) AS
+  2  
+  3  CURSOR item_curr IS
+  4  SELECT i.inv_id, i.item_id, i.inv_price
+  5  FROM inventory i
+  6  JOIN item it
+  7  ON i.item_id = it.item_id;
+  8  
+  9  v_inv_id inventory.inv_id%TYPE;
+ 10  v_id inventory.item_id%TYPE;
+ 11  v_price inventory.inv_price%TYPE;
+ 12  v_new_price NUMBER;
+ 13  
+ 14  BEGIN
+ 15  
+ 16  OPEN item_curr;
+ 17  
+ 18  FETCH item_curr INTO v_inv_id, v_id, v_price;
+ 19  WHILE item_curr%FOUND LOOP
+ 20  v_new_price := v_price + v_price * (p_percent/100);
+ 21  UPDATE inventory SET inv_price = v_new_price WHERE item_id = v_id;
+ 22  DBMS_OUTPUT.PUT_LINE('==================');
+ 23  DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id);
+ 24  DBMS_OUTPUT.PUT_LINE('Item ID #: ' || v_id);
+ 25  DBMS_OUTPUT.PUT_LINE('Old price: $CAD ' || v_price);
+ 26  DBMS_OUTPUT.PUT_LINE('Increase in % : ' || p_percent);
+ 27  DBMS_OUTPUT.PUT_LINE('New price: $CAD ' || v_new_price);
+ 28  
+ 29  FETCH item_curr INTO v_inv_id, v_id, v_price;
+ 30  END LOOP;
+ 31  CLOSE item_curr;
+ 32  END;
+ 33  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC itemPriceUpdater(10);
+==================                                                              
+Inventory ID #: 1                                                               
+Item ID #: 2                                                                    
+Old price: $CAD 506.66                                                          
+Increase in % : 10                                                              
+New price: $CAD 557.326                                                         
+==================                                                              
+Inventory ID #: 2                                                               
+Item ID #: 2                                                                    
+Old price: $CAD 506.66                                                          
+Increase in % : 10                                                              
+New price: $CAD 557.326                                                         
+==================                                                              
+Inventory ID #: 3                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 4                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 5                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 6                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 7                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 8                                                               
+Item ID #: 3                                                                    
+Old price: $CAD 58.4                                                            
+Increase in % : 10                                                              
+New price: $CAD 64.24                                                           
+==================                                                              
+Inventory ID #: 9                                                               
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 10                                                              
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 11                                                              
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 12                                                              
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 13                                                              
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 14                                                              
+Item ID #: 4                                                                    
+Old price: $CAD 116.85                                                          
+Increase in % : 10                                                              
+New price: $CAD 128.535                                                         
+==================                                                              
+Inventory ID #: 15                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 16                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 17                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 18                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 19                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 20                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 21                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 22                                                              
+Item ID #: 5                                                                    
+Old price: $CAD 31.17                                                           
+Increase in % : 10                                                              
+New price: $CAD 34.287                                                          
+==================                                                              
+Inventory ID #: 23                                                              
+Item ID #: 1                                                                    
+Old price: $CAD 409.17                                                          
+Increase in % : 10                                                              
+New price: $CAD 450.087                                                         
+==================                                                              
+Inventory ID #: 24                                                              
+Item ID #: 1                                                                    
+Old price: $CAD 409.17                                                          
+Increase in % : 10                                                              
+New price: $CAD 450.087                                                         
+==================                                                              
+Inventory ID #: 25                                                              
+Item ID #: 1                                                                    
+Old price: $CAD 409.17                                                          
+Increase in % : 10                                                              
+New price: $CAD 450.087                                                         
+==================                                                              
+Inventory ID #: 26                                                              
+Item ID #: 1                                                                    
+Old price: $CAD 409.17                                                          
+Increase in % : 10                                                              
+New price: $CAD 450.087                                                         
+==================                                                              
+Inventory ID #: 27                                                              
+Item ID #: 6                                                                    
+Old price: $CAD 31.1                                                            
+Increase in % : 10                                                              
+New price: $CAD 34.21                                                           
+==================                                                              
+Inventory ID #: 28                                                              
+Item ID #: 6                                                                    
+Old price: $CAD 31.1                                                            
+Increase in % : 10                                                              
+New price: $CAD 34.21                                                           
+==================                                                              
+Inventory ID #: 29                                                              
+Item ID #: 6                                                                    
+Old price: $CAD 31.1                                                            
+Increase in % : 10                                                              
+New price: $CAD 34.21                                                           
+==================                                                              
+Inventory ID #: 30                                                              
+Item ID #: 7                                                                    
+Old price: $CAD 38.96                                                           
+Increase in % : 10                                                              
+New price: $CAD 42.856                                                          
+==================                                                              
+Inventory ID #: 31                                                              
+Item ID #: 7                                                                    
+Old price: $CAD 38.96                                                           
+Increase in % : 10                                                              
+New price: $CAD 42.856                                                          
+==================                                                              
+Inventory ID #: 32                                                              
+Item ID #: 7                                                                    
+Old price: $CAD 38.96                                                           
+Increase in % : 10                                                              
+New price: $CAD 42.856                                                          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --Q4
+SQL> 
+SQL> connect scott/tiger
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE show_highest_paid_employees(p_empAmountToDisplay IN NUMBER) AS
+  2  
+  3  CURSOR empCurr IS
+  4  SELECT ename, sal
+  5  FROM emp
+  6  ORDER BY sal DESC;
+  7  
+  8  v_ename emp.ename%TYPE;
+  9  v_sal emp.sal%TYPE;
+ 10  
+ 11  BEGIN
+ 12  
+ 13  OPEN empCurr;
+ 14  
+ 15  FETCH empCurr INTO v_ename, v_sal;
+ 16  FOR i IN 1..p_empAmountToDisplay LOOP
+ 17  DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+ 18  FETCH empCurr INTO v_ename, v_sal;
+ 19  END LOOP;
+ 20  
+ 21  CLOSE empCUrr;
+ 22  END;
+ 23  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> EXEC show_highest_paid_employees(2);
+KING with a salary of : CAD$ 5000                                               
+SCOTT with a salary of : CAD$ 3000                                              
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC show_highest_paid_employees(10);
+KING with a salary of : CAD$ 5000                                               
+SCOTT with a salary of : CAD$ 3000                                              
+FORD with a salary of : CAD$ 3000                                               
+JONES with a salary of : CAD$ 2975                                              
+BLAKE with a salary of : CAD$ 2850                                              
+CLARK with a salary of : CAD$ 2450                                              
+ALLEN with a salary of : CAD$ 1600                                              
+TURNER with a salary of : CAD$ 1500                                             
+MILLER with a salary of : CAD$ 1300                                             
+MARTIN with a salary of : CAD$ 1250                                             
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --Q5
+SQL> 
+SQL> connect scott/tiger
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE show_top$_emp_for_x_top_sal(p_amountOftopSalaries IN NUMBER) AS
+  2  
+  3  CURSOR empCurr IS
+  4  SELECT ename, sal
+  5  FROM emp
+  6  ORDER BY sal DESC;
+  7  
+  8  v_ename emp.ename%TYPE;
+  9  v_sal emp.sal%TYPE;
+ 10  
+ 11  v_value_checker NUMBER;
+ 12  v_counter NUMBER;
+ 13  
+ 14  BEGIN
+ 15  
+ 16  v_counter := 0;
+ 17  v_value_checker := 0;
+ 18  
+ 19  OPEN empCurr;
+ 20  
+ 21  WHILE v_counter <= p_amountOftopSalaries
+ 22  AND p_amountOftopSalaries > 0
+ 23  
+ 24  LOOP
+ 25  FETCH empCurr INTO v_ename, v_sal;
+ 26  IF empCurr%FOUND THEN
+ 27  IF v_value_checker NOT LIKE v_sal THEN
+ 28  v_counter := v_counter + 1;
+ 29  v_value_checker := v_sal;
+ 30  IF v_counter <= p_amountOftopSalaries THEN
+ 31  DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+ 32  END IF;
+ 33  ELSE
+ 34  DBMS_OUTPUT.PUT_LINE(v_ename || ' with a salary of : CAD$ ' || v_sal);
+ 35  END IF;
+ 36  ELSE v_counter := p_amountOftopSalaries +1;
+ 37  END IF;
+ 38  END LOOP;
+ 39  
+ 40  CLOSE empCUrr;
+ 41  END;
+ 42  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> EXEC show_top$_emp_for_x_top_sal(2);
+KING with a salary of : CAD$ 5000                                               
+SCOTT with a salary of : CAD$ 3000                                              
+FORD with a salary of : CAD$ 3000                                               
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC show_top$_emp_for_x_top_sal(10);
+KING with a salary of : CAD$ 5000                                               
+SCOTT with a salary of : CAD$ 3000                                              
+FORD with a salary of : CAD$ 3000                                               
+JONES with a salary of : CAD$ 2975                                              
+BLAKE with a salary of : CAD$ 2850                                              
+CLARK with a salary of : CAD$ 2450                                              
+ALLEN with a salary of : CAD$ 1600                                              
+TURNER with a salary of : CAD$ 1500                                             
+MILLER with a salary of : CAD$ 1300                                             
+MARTIN with a salary of : CAD$ 1250                                             
+WARD with a salary of : CAD$ 1250                                               
+ADAMS with a salary of : CAD$ 1100                                              
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> SPOOL OFF
