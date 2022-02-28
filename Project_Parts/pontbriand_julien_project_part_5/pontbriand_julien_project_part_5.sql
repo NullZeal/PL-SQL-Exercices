@@ -204,5 +204,3 @@ show error
 
 EXEC show_top$_emp_for_x_top_sal(2);
 EXEC show_top$_emp_for_x_top_sal(10);
-
-
