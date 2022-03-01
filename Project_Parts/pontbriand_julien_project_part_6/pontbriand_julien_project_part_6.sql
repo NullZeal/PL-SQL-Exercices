@@ -1,4 +1,5 @@
 --Q1
+
 SET linesize 300
 SET pagesize 500
 CONNECT des03/des03;
@@ -143,10 +144,10 @@ OPEN item_cur;
 
 FETCH item_cur INTO item_record;
 WHILE item_cur%FOUND LOOP
-	DBMS_OUTPUT.PUT_LINE('===================================================================================');
+	DBMS_OUTPUT.PUT_LINE('=========================================================================================');
 	DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
 					item_record.item_desc || ' | CATEGORY ID: ' || item_record.cat_id);
-	DBMS_OUTPUT.PUT_LINE('===================================================================================');
+	DBMS_OUTPUT.PUT_LINE('=========================================================================================');
 
 	OPEN inventory_cur(item_record.item_id);
 	FETCH inventory_cur INTO inventory_record;
@@ -168,34 +169,75 @@ END;
 show error;
 EXEC display_all_items_inv;
 
-Question 3:
-Run script 7clearwater in schemas des02
-
-Create a procedure to display all items (item_id, item_desc, cat_id) 
-under each item, display all the inventories belong to it.
-
 --Q4
 
+CONNECT des02/des02;
+SET SERVEROUTPUT ON
+SET linesize 300
+SET pagesize 500
+
+CREATE OR REPLACE PROCEDURE display_all_items_inv2 AS
+
+CURSOR item_cur IS
+SELECT item_id, item_desc, cat_id
+	FROM item;
+
+item_record item_cur%ROWTYPE;
+
+CURSOR inventory_cur(pc_item_id item.item_id%TYPE) IS
+SELECT inv_id, color, inv_size, inv_price, inv_qoh
+	FROM inventory
+		WHERE item_id = pc_item_id;
+
+inventory_record inventory_cur%ROWTYPE;
+item_value NUMBER;
+
+BEGIN
+
+item_value := 0;
+
+OPEN item_cur;
+
+FETCH item_cur INTO item_record;
+
+WHILE item_cur%FOUND LOOP
+	
+	OPEN inventory_cur(item_record.item_id);
+	FETCH inventory_cur INTO inventory_record;
+	WHILE inventory_cur%FOUND LOOP
+		item_value := item_value + (inventory_record.inv_price * inventory_record.inv_qoh);
+		FETCH inventory_cur INTO inventory_record;
+	END LOOP;
+	CLOSE inventory_cur;
+		
+	DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
+	DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
+					item_record.item_desc || ' | ITEM VALUE: CAD$ ' || item_value || ' | CATEGORY ID: ' || item_record.cat_id);
+DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
+
+	OPEN inventory_cur(item_record.item_id);
+	FETCH inventory_cur INTO inventory_record;
+	WHILE inventory_cur%FOUND LOOP
+		DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || inventory_record.inv_id || '   Color: ' ||
+		inventory_record.color || '   Size: ' || inventory_record.inv_size || '   Price: CAD$ ' ||
+		inventory_record.inv_price || '   Quantity: ' || inventory_record.inv_qoh || '   Value: CAD$ ' || inventory_record.inv_qoh * inventory_record.inv_price);
+	FETCH inventory_cur INTO inventory_record;
+	IF inventory_cur%NOTFOUND THEN
+		DBMS_OUTPUT.PUT_LINE('.');
+	END IF;
+	END LOOP;
+	CLOSE inventory_cur;
+	FETCH item_cur INTO item_record;
+	item_value := 0;
+END LOOP;
+CLOSE item_cur;
+END;
+/
+show error;
+EXEC display_all_items_inv2;
 	
 --Q5
 
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-Question 4:
-Modify question 3 to display beside the item description the value of
-the item (value = inv_price * inv_qoh).
 
 
 
