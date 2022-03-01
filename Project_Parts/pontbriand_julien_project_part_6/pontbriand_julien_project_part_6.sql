@@ -60,6 +60,8 @@ EXEC display_all_fac_mem;
 
 CONNECT des04/des04;
 SET SERVEROUTPUT ON;
+SET linesize 300
+SET pagesize 500
 
 CREATE OR REPLACE PROCEDURE display_all_consultants AS
 
@@ -94,18 +96,17 @@ WHILE consultant_cur%FOUND LOOP
 	FETCH consultant_skill_cur INTO skill_record;
 
 	WHILE consultant_skill_cur%FOUND LOOP
-	DBMS_OUTPUT.PUT_LINE('|       ' || skill_record.skill_description || ' : ' || skill_record.certification);
+	DBMS_OUTPUT.PUT_LINE('|       ' || skill_record.skill_description || ' - Certification: ' || skill_record.certification);
 	FETCH consultant_skill_cur INTO skill_record;
 	IF consultant_skill_cur%FOUND THEN 
 	DBMS_OUTPUT.PUT_LINE('---------');
+	ELSE 
+	DBMS_OUTPUT.PUT_LINE('.');
 	END IF;
 	END LOOP;
 	CLOSE consultant_skill_cur;
 
 FETCH consultant_cur INTO consultant_record;
-IF consultant_cur%FOUND THEN
-	DBMS_OUTPUT.PUT_LINE('|');
-END IF;
 END LOOP;
 
 CLOSE consultant_cur;
@@ -114,19 +115,64 @@ END;
 show error;
 EXEC display_all_consultants;
 
-
-
-
-
-
-Create a procedure to display all the consultants. 
-
-Under each consultant display all his/her skill (skill description) 
-and the status of the skill (certified or not)
-
-
 --Q3
 
+CONNECT des02/des02;
+SET SERVEROUTPUT ON
+SET linesize 300
+SET pagesize 500
+
+CREATE OR REPLACE PROCEDURE display_all_items_inv AS
+
+CURSOR item_cur IS
+SELECT item_id, item_desc, cat_id
+	FROM item;
+
+item_record item_cur%ROWTYPE;
+
+CURSOR inventory_cur(pc_item_id item.item_id%TYPE) IS
+SELECT inv_id, color, inv_size, inv_price, inv_qoh
+	FROM inventory
+		WHERE item_id = pc_item_id;
+
+inventory_record inventory_cur%ROWTYPE;
+
+BEGIN
+
+OPEN item_cur;
+
+FETCH item_cur INTO item_record;
+WHILE item_cur%FOUND LOOP
+	DBMS_OUTPUT.PUT_LINE('===================================================================================');
+	DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
+					item_record.item_desc || ' | CATEGORY ID: ' || item_record.cat_id);
+	DBMS_OUTPUT.PUT_LINE('===================================================================================');
+
+	OPEN inventory_cur(item_record.item_id);
+	FETCH inventory_cur INTO inventory_record;
+	WHILE inventory_cur%FOUND LOOP
+		DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || inventory_record.inv_id || '   Color: ' ||
+		inventory_record.color || '   Size: ' || inventory_record.inv_size || '   Price: CAD$ ' ||
+		inventory_record.inv_price || '   Quantity: ' || inventory_record.inv_qoh);
+	FETCH inventory_cur INTO inventory_record;
+	IF inventory_cur%NOTFOUND THEN
+		DBMS_OUTPUT.PUT_LINE('.');
+	END IF;
+	END LOOP;
+	CLOSE inventory_cur;
+	FETCH item_cur INTO item_record;
+END LOOP;
+CLOSE item_cur;
+END;
+/
+show error;
+EXEC display_all_items_inv;
+
+Question 3:
+Run script 7clearwater in schemas des02
+
+Create a procedure to display all items (item_id, item_desc, cat_id) 
+under each item, display all the inventories belong to it.
 
 --Q4
 
@@ -143,13 +189,18 @@ and the status of the skill (certified or not)
 
 
 
-Question 3:
-Run script 7clearwater in schemas des02
-Create a procedure to display all items (item_id, item_desc, cat_id) under
-each item, display all the inventories belong to it.
+
+
+
+
 Question 4:
 Modify question 3 to display beside the item description the value of
-the item (value = inv_price * inv_qoh).Question 5:
+the item (value = inv_price * inv_qoh).
+
+
+
+
+Question 5:
 Run script 7software in schemas des04
 Create a procedure that accepts a consultant id, and a character used to
 update the status (certified or not) of all the SKILLs belonged to the
