@@ -20,20 +20,20 @@ FETCH data_cursor
 	INTO v_term_id, v_term_desc, v_status;
 	
 WHILE data_cursor%FOUND LOOP
-DBMS_OUTPUT.PUT_LINE('============');
+DBMS_OUTPUT.PUT_LINE('==================');
 DBMS_OUTPUT.PUT_LINE('ID : ' || v_term_id);
 DBMS_OUTPUT.PUT_LINE('Desc : ' || v_term_desc);
 DBMS_OUTPUT.PUT_LINE('Status : ' || v_status);
 FETCH data_cursor INTO v_term_id, v_term_desc, v_status;
+IF data_cursor%FOUND THEN
+DBMS_OUTPUT.PUT_LINE('.');
+END IF;
 END LOOP;
-
 CLOSE data_cursor;
-
 END;
 /
 show error
 EXEC show_data;
-
 
 -- Q2
 
@@ -42,7 +42,7 @@ SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE show_data_2 AS
 
 CURSOR data_cursor IS
-	SELECT i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
+	SELECT i.inv_id, i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
 		FROM inventory i
 			JOIN item it
 				ON i.item_id = it.item_id;
@@ -51,23 +51,26 @@ v_color inventory.color%TYPE;
 v_price inventory.inv_price%TYPE;
 v_qoh inventory.inv_price%TYPE;
 v_desc item.item_desc%TYPE;
+v_id inventory.inv_id%TYPE;
 
 BEGIN
 
 OPEN data_cursor;
 
 FETCH data_cursor
-	INTO v_color, v_price, v_qoh, v_desc;
+	INTO v_id, v_color, v_price, v_qoh, v_desc;
 
 WHILE data_cursor%FOUND LOOP
-DBMS_OUTPUT.PUT_LINE('============');
-DBMS_OUTPUT.PUT_LINE(' Item color : ' || v_color);
-DBMS_OUTPUT.PUT_LINE('Price : ' || v_price);
-DBMS_OUTPUT.PUT_LINE('QOH : ' || v_qoh);
-DBMS_OUTPUT.PUT_LINE('DESC : ' || v_desc);
+
+DBMS_OUTPUT.PUT_LINE('INVENTORY ID: ' || v_id || '    | DESCRIPTION: ' || v_desc || '    | PRICE: $CAD ' || v_price || 
+					'    | COLOR: ' || v_color || '    | QOH: ' || v_qoh);
+
 
 FETCH data_cursor
-	INTO v_color, v_price, v_qoh, v_desc;
+	INTO v_id, v_color, v_price, v_qoh, v_desc;
+IF data_cursor%FOUND THEN 
+DBMS_OUTPUT.PUT_LINE('|');
+END IF;
 END LOOP;
 
 CLOSE data_cursor;
@@ -76,7 +79,6 @@ END;
 /
 show error;
 EXEC show_data_2;
-
 
 --Q3
 
@@ -104,16 +106,17 @@ FETCH item_curr INTO v_inv_id, v_id, v_price;
 	WHILE item_curr%FOUND LOOP
 			v_new_price := v_price + v_price * (p_percent/100);
 			UPDATE inventory SET inv_price = v_new_price WHERE item_id = v_id;
-			DBMS_OUTPUT.PUT_LINE('==================');
-			DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id);
-			DBMS_OUTPUT.PUT_LINE('Item ID #: ' || v_id);
-			DBMS_OUTPUT.PUT_LINE('Old price: $CAD ' || v_price);
-			DBMS_OUTPUT.PUT_LINE('Increase in % : ' || p_percent);
-			DBMS_OUTPUT.PUT_LINE('New price: $CAD ' || v_new_price);
+			
+			DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id || ' |    Item ID #: ' || v_id || ' |    Old price: $CAD ' || 
+			v_price || ' |    Increase in % : ' || p_percent || ' |    New price: $CAD ' || v_new_price);
 
 		FETCH item_curr INTO v_inv_id, v_id, v_price;
+		IF item_curr%FOUND THEN
+		DBMS_OUTPUT.PUT_LINE('|');
+		END IF;
 	END LOOP;
 CLOSE item_curr;
+--COMMIT;
 END;
 /
 show error;
