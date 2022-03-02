@@ -2,6 +2,8 @@ SQL> --Q1
 SQL> 
 SQL> connect des03/des03;
 Connected.
+SQL> SET linesize 300
+SQL> SET pagesize 500
 SQL> SET SERVEROUTPUT ON
 SQL> CREATE OR REPLACE PROCEDURE show_data AS
   2  
@@ -21,51 +23,56 @@ SQL> CREATE OR REPLACE PROCEDURE show_data AS
  16  INTO v_term_id, v_term_desc, v_status;
  17  
  18  WHILE data_cursor%FOUND LOOP
- 19  DBMS_OUTPUT.PUT_LINE('============');
+ 19  DBMS_OUTPUT.PUT_LINE('==================');
  20  DBMS_OUTPUT.PUT_LINE('ID : ' || v_term_id);
  21  DBMS_OUTPUT.PUT_LINE('Desc : ' || v_term_desc);
  22  DBMS_OUTPUT.PUT_LINE('Status : ' || v_status);
  23  FETCH data_cursor INTO v_term_id, v_term_desc, v_status;
- 24  END LOOP;
- 25  
- 26  CLOSE data_cursor;
- 27  
- 28  END;
- 29  /
+ 24  IF data_cursor%FOUND THEN
+ 25  DBMS_OUTPUT.PUT_LINE('.');
+ 26  END IF;
+ 27  END LOOP;
+ 28  CLOSE data_cursor;
+ 29  END;
+ 30  /
 
 Procedure created.
 
 SQL> show error
 No errors.
 SQL> EXEC show_data;
-============                                                                    
-ID : 1                                                                          
-Desc : Fall 2005                                                                
-Status : CLOSED                                                                 
-============                                                                    
-ID : 2                                                                          
-Desc : Spring 2006                                                              
-Status : CLOSED                                                                 
-============                                                                    
-ID : 3                                                                          
-Desc : Summer 2006                                                              
-Status : CLOSED                                                                 
-============                                                                    
-ID : 4                                                                          
-Desc : Fall 2006                                                                
-Status : CLOSED                                                                 
-============                                                                    
-ID : 5                                                                          
-Desc : Spring 2007                                                              
-Status : CLOSED                                                                 
-============                                                                    
-ID : 6                                                                          
-Desc : Summer 2007                                                              
-Status : OPEN                                                                   
+==================                                                                                                                                                                                                                                                                                          
+ID : 1                                                                                                                                                                                                                                                                                                      
+Desc : Fall 2005                                                                                                                                                                                                                                                                                            
+Status : CLOSED                                                                                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+==================                                                                                                                                                                                                                                                                                          
+ID : 2                                                                                                                                                                                                                                                                                                      
+Desc : Spring 2006                                                                                                                                                                                                                                                                                          
+Status : CLOSED                                                                                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+==================                                                                                                                                                                                                                                                                                          
+ID : 3                                                                                                                                                                                                                                                                                                      
+Desc : Summer 2006                                                                                                                                                                                                                                                                                          
+Status : CLOSED                                                                                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+==================                                                                                                                                                                                                                                                                                          
+ID : 4                                                                                                                                                                                                                                                                                                      
+Desc : Fall 2006                                                                                                                                                                                                                                                                                            
+Status : CLOSED                                                                                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+==================                                                                                                                                                                                                                                                                                          
+ID : 5                                                                                                                                                                                                                                                                                                      
+Desc : Spring 2007                                                                                                                                                                                                                                                                                          
+Status : CLOSED                                                                                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+==================                                                                                                                                                                                                                                                                                          
+ID : 6                                                                                                                                                                                                                                                                                                      
+Desc : Summer 2007                                                                                                                                                                                                                                                                                          
+Status : OPEN                                                                                                                                                                                                                                                                                               
 
 PL/SQL procedure successfully completed.
 
-SQL> 
 SQL> 
 SQL> -- Q2
 SQL> 
@@ -75,7 +82,7 @@ SQL> SET SERVEROUTPUT ON
 SQL> CREATE OR REPLACE PROCEDURE show_data_2 AS
   2  
   3  CURSOR data_cursor IS
-  4  SELECT i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
+  4  SELECT i.inv_id, i.color, i.inv_price, i.inv_qoh, NVL(it.item_desc,'No description')
   5  FROM inventory i
   6  JOIN item it
   7  ON i.item_id = it.item_id;
@@ -84,199 +91,104 @@ SQL> CREATE OR REPLACE PROCEDURE show_data_2 AS
  10  v_price inventory.inv_price%TYPE;
  11  v_qoh inventory.inv_price%TYPE;
  12  v_desc item.item_desc%TYPE;
- 13  
- 14  BEGIN
- 15  
- 16  OPEN data_cursor;
- 17  
- 18  FETCH data_cursor
- 19  INTO v_color, v_price, v_qoh, v_desc;
- 20  
- 21  WHILE data_cursor%FOUND LOOP
- 22  DBMS_OUTPUT.PUT_LINE('============');
- 23  DBMS_OUTPUT.PUT_LINE(' Item color : ' || v_color);
- 24  DBMS_OUTPUT.PUT_LINE('Price : ' || v_price);
- 25  DBMS_OUTPUT.PUT_LINE('QOH : ' || v_qoh);
- 26  DBMS_OUTPUT.PUT_LINE('DESC : ' || v_desc);
+ 13  v_id inventory.inv_id%TYPE;
+ 14  
+ 15  BEGIN
+ 16  
+ 17  OPEN data_cursor;
+ 18  
+ 19  FETCH data_cursor
+ 20  INTO v_id, v_color, v_price, v_qoh, v_desc;
+ 21  
+ 22  WHILE data_cursor%FOUND LOOP
+ 23  
+ 24  DBMS_OUTPUT.PUT_LINE('INVENTORY ID: ' || v_id || '    | DESCRIPTION: ' || v_desc || '    | PRICE: $CAD ' || v_price ||
+ 25  '    | COLOR: ' || v_color || '    | QOH: ' || v_qoh);
+ 26  
  27  
  28  FETCH data_cursor
- 29  INTO v_color, v_price, v_qoh, v_desc;
- 30  END LOOP;
- 31  
- 32  CLOSE data_cursor;
- 33  
- 34  END;
- 35  /
+ 29  INTO v_id, v_color, v_price, v_qoh, v_desc;
+ 30  IF data_cursor%FOUND THEN
+ 31  DBMS_OUTPUT.PUT_LINE('|');
+ 32  END IF;
+ 33  END LOOP;
+ 34  
+ 35  CLOSE data_cursor;
+ 36  
+ 37  END;
+ 38  /
 
 Procedure created.
 
 SQL> show error;
 No errors.
 SQL> EXEC show_data_2;
-============                                                                    
-Item color : Sky Blue                                                           
-Price : 506.66                                                                  
-QOH : 16                                                                        
-DESC : 3-Season Tent                                                            
-============                                                                    
-Item color : Light Grey                                                         
-Price : 506.66                                                                  
-QOH : 12                                                                        
-DESC : 3-Season Tent                                                            
-============                                                                    
-Item color : Khaki                                                              
-Price : 58.4                                                                    
-QOH : 150                                                                       
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Khaki                                                              
-Price : 58.4                                                                    
-QOH : 147                                                                       
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Khaki                                                              
-Price : 58.4                                                                    
-QOH : 0                                                                         
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Navy                                                               
-Price : 58.4                                                                    
-QOH : 139                                                                       
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Navy                                                               
-Price : 58.4                                                                    
-QOH : 137                                                                       
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Navy                                                               
-Price : 58.4                                                                    
-QOH : 115                                                                       
-DESC : Women's Hiking Shorts                                                    
-============                                                                    
-Item color : Eggplant                                                           
-Price : 116.85                                                                  
-QOH : 135                                                                       
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Eggplant                                                           
-Price : 116.85                                                                  
-QOH : 168                                                                       
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Eggplant                                                           
-Price : 116.85                                                                  
-QOH : 187                                                                       
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Royal                                                              
-Price : 116.85                                                                  
-QOH : 0                                                                         
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Royal                                                              
-Price : 116.85                                                                  
-QOH : 124                                                                       
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Royal                                                              
-Price : 116.85                                                                  
-QOH : 112                                                                       
-DESC : Women's Fleece Pullover                                                  
-============                                                                    
-Item color : Turquoise                                                          
-Price : 31.17                                                                   
-QOH : 121                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Turquoise                                                          
-Price : 31.17                                                                   
-QOH : 111                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Turquoise                                                          
-Price : 31.17                                                                   
-QOH : 113                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Turquoise                                                          
-Price : 31.17                                                                   
-QOH : 121                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Bright Pink                                                        
-Price : 31.17                                                                   
-QOH : 148                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Bright Pink                                                        
-Price : 31.17                                                                   
-QOH : 137                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Bright Pink                                                        
-Price : 31.17                                                                   
-QOH : 134                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Bright Pink                                                        
-Price : 31.17                                                                   
-QOH : 123                                                                       
-DESC : Children's Beachcomber Sandals                                           
-============                                                                    
-Item color : Spruce                                                             
-Price : 409.17                                                                  
-QOH : 114                                                                       
-DESC : Men's Expedition Parka                                                   
-============                                                                    
-Item color : Spruce                                                             
-Price : 409.17                                                                  
-QOH : 17                                                                        
-DESC : Men's Expedition Parka                                                   
-============                                                                    
-Item color : Spruce                                                             
-Price : 409.17                                                                  
-QOH : 0                                                                         
-DESC : Men's Expedition Parka                                                   
-============                                                                    
-Item color : Spruce                                                             
-Price : 409.17                                                                  
-QOH : 12                                                                        
-DESC : Men's Expedition Parka                                                   
-============                                                                    
-Item color : Blue                                                               
-Price : 31.1                                                                    
-QOH : 50                                                                        
-DESC : Boy's Surf Shorts                                                        
-============                                                                    
-Item color : Blue                                                               
-Price : 31.1                                                                    
-QOH : 100                                                                       
-DESC : Boy's Surf Shorts                                                        
-============                                                                    
-Item color : Blue                                                               
-Price : 31.1                                                                    
-QOH : 100                                                                       
-DESC : Boy's Surf Shorts                                                        
-============                                                                    
-Item color : White                                                              
-Price : 38.96                                                                   
-QOH : 100                                                                       
-DESC : Girl's Soccer Tee                                                        
-============                                                                    
-Item color : White                                                              
-Price : 38.96                                                                   
-QOH : 100                                                                       
-DESC : Girl's Soccer Tee                                                        
-============                                                                    
-Item color : White                                                              
-Price : 38.96                                                                   
-QOH : 100                                                                       
-DESC : Girl's Soccer Tee                                                        
+INVENTORY ID: 1    | DESCRIPTION: 3-Season Tent    | PRICE: $CAD 1314.17    | COLOR: Sky Blue    | QOH: 16                                                                                                                                                                                                  
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 2    | DESCRIPTION: 3-Season Tent    | PRICE: $CAD 1314.17    | COLOR: Light Grey    | QOH: 12                                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 3    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Khaki    | QOH: 150                                                                                                                                                                                             
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 4    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Khaki    | QOH: 147                                                                                                                                                                                             
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 5    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Khaki    | QOH: 0                                                                                                                                                                                               
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 6    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Navy    | QOH: 139                                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 7    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Navy    | QOH: 137                                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 8    | DESCRIPTION: Women's Hiking Shorts    | PRICE: $CAD 151.48    | COLOR: Navy    | QOH: 115                                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 9    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Eggplant    | QOH: 135                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 10    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Eggplant    | QOH: 168                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 11    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Eggplant    | QOH: 187                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 12    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Royal    | QOH: 0                                                                                                                                                                                            
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 13    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Royal    | QOH: 124                                                                                                                                                                                          
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 14    | DESCRIPTION: Women's Fleece Pullover    | PRICE: $CAD 303.08    | COLOR: Royal    | QOH: 112                                                                                                                                                                                          
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 15    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Turquoise    | QOH: 121                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 16    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Turquoise    | QOH: 111                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 17    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Turquoise    | QOH: 113                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 18    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Turquoise    | QOH: 121                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 19    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Bright Pink    | QOH: 148                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 20    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Bright Pink    | QOH: 137                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 21    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Bright Pink    | QOH: 134                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 22    | DESCRIPTION: Children's Beachcomber Sandals    | PRICE: $CAD 80.84    | COLOR: Bright Pink    | QOH: 123                                                                                                                                                                              
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 23    | DESCRIPTION: Men's Expedition Parka    | PRICE: $CAD 1061.3    | COLOR: Spruce    | QOH: 114                                                                                                                                                                                          
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 24    | DESCRIPTION: Men's Expedition Parka    | PRICE: $CAD 1061.3    | COLOR: Spruce    | QOH: 17                                                                                                                                                                                           
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 25    | DESCRIPTION: Men's Expedition Parka    | PRICE: $CAD 1061.3    | COLOR: Spruce    | QOH: 0                                                                                                                                                                                            
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 26    | DESCRIPTION: Men's Expedition Parka    | PRICE: $CAD 1061.3    | COLOR: Spruce    | QOH: 12                                                                                                                                                                                           
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 27    | DESCRIPTION: Boy's Surf Shorts    | PRICE: $CAD 80.66    | COLOR: Blue    | QOH: 50                                                                                                                                                                                                   
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 28    | DESCRIPTION: Boy's Surf Shorts    | PRICE: $CAD 80.66    | COLOR: Blue    | QOH: 100                                                                                                                                                                                                  
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 29    | DESCRIPTION: Boy's Surf Shorts    | PRICE: $CAD 80.66    | COLOR: Blue    | QOH: 100                                                                                                                                                                                                  
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 30    | DESCRIPTION: Girl's Soccer Tee    | PRICE: $CAD 101.11    | COLOR: White    | QOH: 100                                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 31    | DESCRIPTION: Girl's Soccer Tee    | PRICE: $CAD 101.11    | COLOR: White    | QOH: 100                                                                                                                                                                                                
+|                                                                                                                                                                                                                                                                                                           
+INVENTORY ID: 32    | DESCRIPTION: Girl's Soccer Tee    | PRICE: $CAD 101.11    | COLOR: White    | QOH: 100                                                                                                                                                                                                
 
 PL/SQL procedure successfully completed.
 
-SQL> 
 SQL> 
 SQL> --Q3
 SQL> 
@@ -305,216 +217,88 @@ SQL> CREATE OR REPLACE PROCEDURE itemPriceUpdater(p_percent IN NUMBER) AS
  19  WHILE item_curr%FOUND LOOP
  20  v_new_price := v_price + v_price * (p_percent/100);
  21  UPDATE inventory SET inv_price = v_new_price WHERE item_id = v_id;
- 22  DBMS_OUTPUT.PUT_LINE('==================');
- 23  DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id);
- 24  DBMS_OUTPUT.PUT_LINE('Item ID #: ' || v_id);
- 25  DBMS_OUTPUT.PUT_LINE('Old price: $CAD ' || v_price);
- 26  DBMS_OUTPUT.PUT_LINE('Increase in % : ' || p_percent);
- 27  DBMS_OUTPUT.PUT_LINE('New price: $CAD ' || v_new_price);
- 28  
- 29  FETCH item_curr INTO v_inv_id, v_id, v_price;
+ 22  
+ 23  DBMS_OUTPUT.PUT_LINE('Inventory ID #: ' || v_inv_id || ' |    Item ID #: ' || v_id || ' |    Old price: $CAD ' ||
+ 24  v_price || ' |    Increase in % : ' || p_percent || ' |    New price: $CAD ' || v_new_price);
+ 25  
+ 26  FETCH item_curr INTO v_inv_id, v_id, v_price;
+ 27  IF item_curr%FOUND THEN
+ 28  DBMS_OUTPUT.PUT_LINE('|');
+ 29  END IF;
  30  END LOOP;
  31  CLOSE item_curr;
- 32  END;
- 33  /
+ 32  --COMMIT;
+ 33  END;
+ 34  /
 
 Procedure created.
 
 SQL> show error;
 No errors.
 SQL> EXEC itemPriceUpdater(10);
-==================                                                              
-Inventory ID #: 1                                                               
-Item ID #: 2                                                                    
-Old price: $CAD 506.66                                                          
-Increase in % : 10                                                              
-New price: $CAD 557.326                                                         
-==================                                                              
-Inventory ID #: 2                                                               
-Item ID #: 2                                                                    
-Old price: $CAD 506.66                                                          
-Increase in % : 10                                                              
-New price: $CAD 557.326                                                         
-==================                                                              
-Inventory ID #: 3                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 4                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 5                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 6                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 7                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 8                                                               
-Item ID #: 3                                                                    
-Old price: $CAD 58.4                                                            
-Increase in % : 10                                                              
-New price: $CAD 64.24                                                           
-==================                                                              
-Inventory ID #: 9                                                               
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 10                                                              
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 11                                                              
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 12                                                              
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 13                                                              
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 14                                                              
-Item ID #: 4                                                                    
-Old price: $CAD 116.85                                                          
-Increase in % : 10                                                              
-New price: $CAD 128.535                                                         
-==================                                                              
-Inventory ID #: 15                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 16                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 17                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 18                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 19                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 20                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 21                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 22                                                              
-Item ID #: 5                                                                    
-Old price: $CAD 31.17                                                           
-Increase in % : 10                                                              
-New price: $CAD 34.287                                                          
-==================                                                              
-Inventory ID #: 23                                                              
-Item ID #: 1                                                                    
-Old price: $CAD 409.17                                                          
-Increase in % : 10                                                              
-New price: $CAD 450.087                                                         
-==================                                                              
-Inventory ID #: 24                                                              
-Item ID #: 1                                                                    
-Old price: $CAD 409.17                                                          
-Increase in % : 10                                                              
-New price: $CAD 450.087                                                         
-==================                                                              
-Inventory ID #: 25                                                              
-Item ID #: 1                                                                    
-Old price: $CAD 409.17                                                          
-Increase in % : 10                                                              
-New price: $CAD 450.087                                                         
-==================                                                              
-Inventory ID #: 26                                                              
-Item ID #: 1                                                                    
-Old price: $CAD 409.17                                                          
-Increase in % : 10                                                              
-New price: $CAD 450.087                                                         
-==================                                                              
-Inventory ID #: 27                                                              
-Item ID #: 6                                                                    
-Old price: $CAD 31.1                                                            
-Increase in % : 10                                                              
-New price: $CAD 34.21                                                           
-==================                                                              
-Inventory ID #: 28                                                              
-Item ID #: 6                                                                    
-Old price: $CAD 31.1                                                            
-Increase in % : 10                                                              
-New price: $CAD 34.21                                                           
-==================                                                              
-Inventory ID #: 29                                                              
-Item ID #: 6                                                                    
-Old price: $CAD 31.1                                                            
-Increase in % : 10                                                              
-New price: $CAD 34.21                                                           
-==================                                                              
-Inventory ID #: 30                                                              
-Item ID #: 7                                                                    
-Old price: $CAD 38.96                                                           
-Increase in % : 10                                                              
-New price: $CAD 42.856                                                          
-==================                                                              
-Inventory ID #: 31                                                              
-Item ID #: 7                                                                    
-Old price: $CAD 38.96                                                           
-Increase in % : 10                                                              
-New price: $CAD 42.856                                                          
-==================                                                              
-Inventory ID #: 32                                                              
-Item ID #: 7                                                                    
-Old price: $CAD 38.96                                                           
-Increase in % : 10                                                              
-New price: $CAD 42.856                                                          
+Inventory ID #: 1 |    Item ID #: 2 |    Old price: $CAD 1314.17 |    Increase in % : 10 |    New price: $CAD 1445.587                                                                                                                                                                                      
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 2 |    Item ID #: 2 |    Old price: $CAD 1314.17 |    Increase in % : 10 |    New price: $CAD 1445.587                                                                                                                                                                                      
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 3 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 4 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 5 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 6 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 7 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 8 |    Item ID #: 3 |    Old price: $CAD 151.48 |    Increase in % : 10 |    New price: $CAD 166.628                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 9 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 10 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 11 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 12 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 13 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 14 |    Item ID #: 4 |    Old price: $CAD 303.08 |    Increase in % : 10 |    New price: $CAD 333.388                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 15 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 16 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 17 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 18 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 19 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 20 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 21 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 22 |    Item ID #: 5 |    Old price: $CAD 80.84 |    Increase in % : 10 |    New price: $CAD 88.924                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 23 |    Item ID #: 1 |    Old price: $CAD 1061.3 |    Increase in % : 10 |    New price: $CAD 1167.43                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 24 |    Item ID #: 1 |    Old price: $CAD 1061.3 |    Increase in % : 10 |    New price: $CAD 1167.43                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 25 |    Item ID #: 1 |    Old price: $CAD 1061.3 |    Increase in % : 10 |    New price: $CAD 1167.43                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 26 |    Item ID #: 1 |    Old price: $CAD 1061.3 |    Increase in % : 10 |    New price: $CAD 1167.43                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 27 |    Item ID #: 6 |    Old price: $CAD 80.66 |    Increase in % : 10 |    New price: $CAD 88.726                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 28 |    Item ID #: 6 |    Old price: $CAD 80.66 |    Increase in % : 10 |    New price: $CAD 88.726                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 29 |    Item ID #: 6 |    Old price: $CAD 80.66 |    Increase in % : 10 |    New price: $CAD 88.726                                                                                                                                                                                         
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 30 |    Item ID #: 7 |    Old price: $CAD 101.11 |    Increase in % : 10 |    New price: $CAD 111.221                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 31 |    Item ID #: 7 |    Old price: $CAD 101.11 |    Increase in % : 10 |    New price: $CAD 111.221                                                                                                                                                                                       
+|                                                                                                                                                                                                                                                                                                           
+Inventory ID #: 32 |    Item ID #: 7 |    Old price: $CAD 101.11 |    Increase in % : 10 |    New price: $CAD 111.221                                                                                                                                                                                       
 
 PL/SQL procedure successfully completed.
 
@@ -555,22 +339,22 @@ SQL> show error
 No errors.
 SQL> 
 SQL> EXEC show_highest_paid_employees(2);
-KING with a salary of : CAD$ 5000                                               
-SCOTT with a salary of : CAD$ 3000                                              
+KING with a salary of : CAD$ 5000                                                                                                                                                                                                                                                                           
+SCOTT with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                          
 
 PL/SQL procedure successfully completed.
 
 SQL> EXEC show_highest_paid_employees(10);
-KING with a salary of : CAD$ 5000                                               
-SCOTT with a salary of : CAD$ 3000                                              
-FORD with a salary of : CAD$ 3000                                               
-JONES with a salary of : CAD$ 2975                                              
-BLAKE with a salary of : CAD$ 2850                                              
-CLARK with a salary of : CAD$ 2450                                              
-ALLEN with a salary of : CAD$ 1600                                              
-TURNER with a salary of : CAD$ 1500                                             
-MILLER with a salary of : CAD$ 1300                                             
-MARTIN with a salary of : CAD$ 1250                                             
+KING with a salary of : CAD$ 5000                                                                                                                                                                                                                                                                           
+SCOTT with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                          
+FORD with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                           
+JONES with a salary of : CAD$ 2975                                                                                                                                                                                                                                                                          
+BLAKE with a salary of : CAD$ 2850                                                                                                                                                                                                                                                                          
+CLARK with a salary of : CAD$ 2450                                                                                                                                                                                                                                                                          
+ALLEN with a salary of : CAD$ 1600                                                                                                                                                                                                                                                                          
+TURNER with a salary of : CAD$ 1500                                                                                                                                                                                                                                                                         
+MILLER with a salary of : CAD$ 1300                                                                                                                                                                                                                                                                         
+MARTIN with a salary of : CAD$ 1250                                                                                                                                                                                                                                                                         
 
 PL/SQL procedure successfully completed.
 
@@ -631,28 +415,26 @@ SQL> show error
 No errors.
 SQL> 
 SQL> EXEC show_top$_emp_for_x_top_sal(2);
-KING with a salary of : CAD$ 5000                                               
-SCOTT with a salary of : CAD$ 3000                                              
-FORD with a salary of : CAD$ 3000                                               
+KING with a salary of : CAD$ 5000                                                                                                                                                                                                                                                                           
+SCOTT with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                          
+FORD with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                           
 
 PL/SQL procedure successfully completed.
 
 SQL> EXEC show_top$_emp_for_x_top_sal(10);
-KING with a salary of : CAD$ 5000                                               
-SCOTT with a salary of : CAD$ 3000                                              
-FORD with a salary of : CAD$ 3000                                               
-JONES with a salary of : CAD$ 2975                                              
-BLAKE with a salary of : CAD$ 2850                                              
-CLARK with a salary of : CAD$ 2450                                              
-ALLEN with a salary of : CAD$ 1600                                              
-TURNER with a salary of : CAD$ 1500                                             
-MILLER with a salary of : CAD$ 1300                                             
-MARTIN with a salary of : CAD$ 1250                                             
-WARD with a salary of : CAD$ 1250                                               
-ADAMS with a salary of : CAD$ 1100                                              
+KING with a salary of : CAD$ 5000                                                                                                                                                                                                                                                                           
+SCOTT with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                          
+FORD with a salary of : CAD$ 3000                                                                                                                                                                                                                                                                           
+JONES with a salary of : CAD$ 2975                                                                                                                                                                                                                                                                          
+BLAKE with a salary of : CAD$ 2850                                                                                                                                                                                                                                                                          
+CLARK with a salary of : CAD$ 2450                                                                                                                                                                                                                                                                          
+ALLEN with a salary of : CAD$ 1600                                                                                                                                                                                                                                                                          
+TURNER with a salary of : CAD$ 1500                                                                                                                                                                                                                                                                         
+MILLER with a salary of : CAD$ 1300                                                                                                                                                                                                                                                                         
+MARTIN with a salary of : CAD$ 1250                                                                                                                                                                                                                                                                         
+WARD with a salary of : CAD$ 1250                                                                                                                                                                                                                                                                           
+ADAMS with a salary of : CAD$ 1100                                                                                                                                                                                                                                                                          
 
 PL/SQL procedure successfully completed.
 
-SQL> 
-SQL> 
 SQL> SPOOL OFF
