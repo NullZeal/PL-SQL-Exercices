@@ -212,7 +212,7 @@ WHILE item_cur%FOUND LOOP
 		
 	DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
 	DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
-					item_record.item_desc || ' | ITEM VALUE: CAD$ ' || item_value || ' | CATEGORY ID: ' || item_record.cat_id);
+					item_record.item_desc || ' | ITEM TOTAL VALUE: CAD$ ' || item_value || ' | CATEGORY ID: ' || item_record.cat_id);
 DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
 
 	OPEN inventory_cur(item_record.item_id);
