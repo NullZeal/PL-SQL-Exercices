@@ -1,6 +1,8 @@
 --Q1
 
 connect des03/des03;
+SET linesize 300
+SET pagesize 500
 SET SERVEROUTPUT ON
 CREATE OR REPLACE PROCEDURE show_data AS
 
