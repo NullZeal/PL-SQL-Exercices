@@ -88,10 +88,10 @@ OPEN consultant_cur;
 FETCH consultant_cur INTO consultant_record;
 
 WHILE consultant_cur%FOUND LOOP
-	DBMS_OUTPUT.PUT_LINE('=========================================================================');
+	DBMS_OUTPUT.PUT_LINE('=======================================================================');
 	DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '    FIRST NAME: ' || 
 	consultant_record.c_first || '    LAST NAME: ' || consultant_record.c_last);
-	DBMS_OUTPUT.PUT_LINE('=========================================================================');
+	DBMS_OUTPUT.PUT_LINE('=======================================================================');
 
 	OPEN consultant_skill_cur(consultant_record.c_id);
 	FETCH consultant_skill_cur INTO skill_record;
@@ -238,15 +238,67 @@ EXEC display_all_items_inv2;
 	
 --Q5
 
+CONNECT des04/des04;
+SET SERVEROUTPUT ON
+SET linesize 300
+SET pagesize 500
+
+CREATE OR REPLACE PROCEDURE cons_skill_updater(p_c_Id_IN NUMBER, p_certification_IN VARCHAR2) AS
+
+CURSOR consultant_cur IS 
+	SELECT c_id, c_first, c_last, c_email
+		FROM consultant;
+
+consultant_record consultant_cur%ROWTYPE;
+
+CURSOR consultant_skills_cur(pc_consultant_id consultant.c_id%TYPE) IS
+	SELECT cs.skill_id, s.skill_description, cs.certification
+		FROM consultant_skill cs
+			JOIN skill s
+				ON cs.skill_id = s.skill_id
+					WHERE cs.c_id = pc_consultant_id;
+
+skill_record consultant_skills_cur%ROWTYPE;
+
+BEGIN
+
+OPEN consultant_cur;
+
+FETCH consultant_cur INTO consultant_record;
+
+WHILE consultant_cur%FOUND LOOP
+	DBMS_OUTPUT.PUT_LINE('============================================================================================');
+	DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '    FIRST NAME: ' || consultant_record.c_first || '    LAST NAME: ' || consultant_record.c_last || 'EMAIL: ' || consultant_record.c_email);
+	DBMS_OUTPUT.PUT_LINE('============================================================================================');
+
+	-- OPEN consultant_skills_cur(consultant_record.c_id);
+	-- FETCH consultant_skills_cur INTO skill_record;
+	-- WHILE consultant_skills_cur%FOUND LOOP
+	-- 	IF consultant_record.c_id = p_c_Id_IN THEN
+	-- 		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    Skill Description' || skill_record.skill_description || '    Old Certification Status' || skill_record.certification || '    New Certification status: ' || p_certification_IN);
+	-- 		UPDATE consultant_skill
+	-- 			SET certification = p_certification_IN 
+	-- 				WHERE c_id = consultant_record.c_id AND skill_id = skill_record.skill_id;
+	-- 	ELSE
+	-- 		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    Skill Description' || skill_record.skill_description || '    Certification Status' || skill_record.certification);
+		
+	-- 	END IF;
+	-- FETCH consultant_skills_cur INTO skill_record;
+	-- END LOOP;
+	-- CLOSE consultant_skills_cur;
+FETCH consultant_cur INTO consultant_record;
+END LOOP;
+CLOSE consultant_cur;
+END;
+/
+show error
+
+EXEC cons_skill_updater(100,'Y');
 
 
 
+Under each consultant 
 
-Question 5:
-Run script 7software in schemas des04
-Create a procedure that accepts a consultant id, and a character used to
-update the status (certified or not) of all the SKILLs belonged to the
-consultant inserted.
-Display 4 information about the consultant such as id, name, …Under each
-consultant display all his/her skill (skill description) and the OLD and NEW
+display all his/her skill (skill description) 
+and the OLD and NEW
 status of the skill (certified or not).
