@@ -1,0 +1,634 @@
+SQL> --Q1
+SQL> 
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> CONNECT des03/des03;
+Connected.
+SQL> SET SERVEROUTPUT ON;
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_fac_mem AS
+  2  
+  3  CURSOR fac_cur IS
+  4  
+  5  SELECT f_id, f_last, f_first, f_rank
+  6  FROM faculty;
+  7  
+  8  CURSOR student_cur(pc_f_id faculty.f_id%TYPE) IS
+  9  SELECT s_id, s_last, s_first, s_dob, s_class
+ 10  FROM student
+ 11  WHERE f_id = pc_f_id;
+ 12  
+ 13  faculty_record fac_cur%ROWTYPE;
+ 14  student_record student_cur%ROWTYPE;
+ 15  
+ 16  BEGIN
+ 17  
+ 18  OPEN fac_cur;
+ 19  
+ 20  FETCH fac_cur INTO faculty_record;
+ 21  
+ 22  WHILE fac_cur%FOUND LOOP
+ 23  DBMS_OUTPUT.PUT_LINE('====================================================================================================');
+ 24  DBMS_OUTPUT.PUT_LINE('FACULTY MEMBER ID: ' || faculty_record.f_id || ' - FIRST NAME:  ' || faculty_record.f_first || ' - LAST NAME: ' ||
+ 25  faculty_record.f_last || ' - Rank : ' || faculty_record.f_rank);
+ 26  DBMS_OUTPUT.PUT_LINE('====================================================================================================');
+ 27  
+ 28  OPEN student_cur(faculty_record.f_id);
+ 29  FETCH student_cur INTO student_record;
+ 30  IF student_cur%NOTFOUND THEN
+ 31  DBMS_OUTPUT.PUT_LINE('***** NO STUDENT FOUND FOR THIS FACULTY MEMBER! *****');
+ 32  END IF;
+ 33  WHILE student_cur%FOUND LOOP
+ 34  DBMS_OUTPUT.PUT_LINE('|       Student ID: ' || student_record.s_id || ' - First Name: ' || student_record.s_first || ' - Last Name: ' ||
+ 35  student_record.s_last || ' - Birthdate: ' || student_record.s_dob || ' - class: ' || student_record.s_class);
+ 36  FETCH student_cur INTO student_record;
+ 37  IF student_cur%FOUND THEN
+ 38  DBMS_OUTPUT.PUT_LINE('---------');
+ 39  END IF;
+ 40  END LOOP;
+ 41  CLOSE student_cur;
+ 42  FETCH fac_cur INTO faculty_record;
+ 43  IF fac_cur%FOUND THEN
+ 44  DBMS_OUTPUT.PUT_LINE('|');
+ 45  END IF;
+ 46  END LOOP;
+ 47  CLOSE fac_cur;
+ 48  END;
+ 49  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_fac_mem;
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 1 - FIRST NAME:  Kim - LAST NAME: Cox - Rank : ASSO                                                                                                                                                                                                                                      
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 1 - First Name: Sarah - Last Name: Miller - Birthdate: 85-07-14 - class: SR                                                                                                                                                                                                             
+---------                                                                                                                                                                                                                                                                                                   
+|       Student ID: 2 - First Name: Brian - Last Name: Umato - Birthdate: 85-08-19 - class: SR                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Student ID: 3 - First Name: Daniel - Last Name: Black - Birthdate: 82-10-10 - class: JR                                                                                                                                                                                                             
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 2 - FIRST NAME:  John - LAST NAME: Blanchard - Rank : FULL                                                                                                                                                                                                                               
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 4 - First Name: Amanda - Last Name: Mobley - Birthdate: 86-09-24 - class: SO                                                                                                                                                                                                            
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 3 - FIRST NAME:  Jerry - LAST NAME: Williams - Rank : ASST                                                                                                                                                                                                                               
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 6 - First Name: Michael - Last Name: Connoly - Birthdate: 86-12-04 - class: FR                                                                                                                                                                                                          
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 4 - FIRST NAME:  Laura - LAST NAME: Sheng - Rank : INST                                                                                                                                                                                                                                  
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 5 - First Name: Ruben - Last Name: Sanchez - Birthdate: 86-11-20 - class: SO                                                                                                                                                                                                            
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 5 - FIRST NAME:  Philip - LAST NAME: Brown - Rank : ASSO                                                                                                                                                                                                                                 
+====================================================================================================                                                                                                                                                                                                        
+***** NO STUDENT FOUND FOR THIS FACULTY MEMBER! *****                                                                                                                                                                                                                                                       
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --Q2
+SQL> 
+SQL> CONNECT des04/des04;
+Connected.
+SQL> SET SERVEROUTPUT ON;
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_consultants AS
+  2  
+  3  CURSOR consultant_cur IS
+  4  SELECT c_id, c_first, c_last
+  5  FROM consultant;
+  6  
+  7  CURSOR consultant_skill_cur(pc_consultant_id consultant.c_id%TYPE) IS
+  8  
+  9  SELECT s.skill_id, s.skill_description, cs.certification, cs.c_id
+ 10  FROM skill S
+ 11  JOIN consultant_skill cs
+ 12  ON s.skill_id = cs.skill_id
+ 13  WHERE cs.c_id = pc_consultant_id;
+ 14  
+ 15  consultant_record consultant_cur%ROWTYPE;
+ 16  skill_record consultant_skill_cur%ROWTYPE;
+ 17  
+ 18  BEGIN
+ 19  
+ 20  OPEN consultant_cur;
+ 21  
+ 22  FETCH consultant_cur INTO consultant_record;
+ 23  
+ 24  WHILE consultant_cur%FOUND LOOP
+ 25  DBMS_OUTPUT.PUT_LINE('=======================================================================');
+ 26  DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '    FIRST NAME: ' ||
+ 27  consultant_record.c_first || '    LAST NAME: ' || consultant_record.c_last);
+ 28  DBMS_OUTPUT.PUT_LINE('=======================================================================');
+ 29  
+ 30  OPEN consultant_skill_cur(consultant_record.c_id);
+ 31  FETCH consultant_skill_cur INTO skill_record;
+ 32  
+ 33  WHILE consultant_skill_cur%FOUND LOOP
+ 34  DBMS_OUTPUT.PUT_LINE('|       ' || skill_record.skill_description || ' - Certification: ' || skill_record.certification);
+ 35  FETCH consultant_skill_cur INTO skill_record;
+ 36  IF consultant_skill_cur%FOUND THEN
+ 37  DBMS_OUTPUT.PUT_LINE('---------');
+ 38  ELSE
+ 39  DBMS_OUTPUT.PUT_LINE('.');
+ 40  END IF;
+ 41  END LOOP;
+ 42  CLOSE consultant_skill_cur;
+ 43  
+ 44  FETCH consultant_cur INTO consultant_record;
+ 45  END LOOP;
+ 46  
+ 47  CLOSE consultant_cur;
+ 48  END;
+ 49  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_consultants;
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 100    FIRST NAME: Mark    LAST NAME: Myers                                                                                                                                                                                                                                                  
+=======================================================================                                                                                                                                                                                                                                     
+|       VB .NET Programming - Certification: Y                                                                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Java Programming - Certification: N                                                                                                                                                                                                                                                                 
+---------                                                                                                                                                                                                                                                                                                   
+|       Oracle Developer Programming - Certification: Y                                                                                                                                                                                                                                                     
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 101    FIRST NAME: Sheila    LAST NAME: Hernandez                                                                                                                                                                                                                                            
+=======================================================================                                                                                                                                                                                                                                     
+|       Project Management - Certification: N                                                                                                                                                                                                                                                               
+---------                                                                                                                                                                                                                                                                                                   
+|       Web Application Programming - Certification: N                                                                                                                                                                                                                                                      
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 102    FIRST NAME: Brian    LAST NAME: Zhang                                                                                                                                                                                                                                                 
+=======================================================================                                                                                                                                                                                                                                     
+|       Oracle Database Administration - Certification: Y                                                                                                                                                                                                                                                   
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 103    FIRST NAME: Sarah    LAST NAME: Carlson                                                                                                                                                                                                                                               
+=======================================================================                                                                                                                                                                                                                                     
+|       VB .NET Programming - Certification: Y                                                                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Oracle Developer Programming - Certification: Y                                                                                                                                                                                                                                                     
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows NT/2000 Network Administration - Certification: Y                                                                                                                                                                                                                                           
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows XP Network Administration - Certification: Y                                                                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 104    FIRST NAME: Paul    LAST NAME: Courtlandt                                                                                                                                                                                                                                             
+=======================================================================                                                                                                                                                                                                                                     
+|       Windows NT/2000 Network Administration - Certification: N                                                                                                                                                                                                                                           
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows XP Network Administration - Certification: Y                                                                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 105    FIRST NAME: Janet    LAST NAME: Park                                                                                                                                                                                                                                                  
+=======================================================================                                                                                                                                                                                                                                     
+|       COBOL Programming - Certification: N                                                                                                                                                                                                                                                                
+---------                                                                                                                                                                                                                                                                                                   
+|       Java Programming - Certification: N                                                                                                                                                                                                                                                                 
+---------                                                                                                                                                                                                                                                                                                   
+|       Project Management - Certification: Y                                                                                                                                                                                                                                                               
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --Q3
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_items_inv AS
+  2  
+  3  CURSOR item_cur IS
+  4  SELECT item_id, item_desc, cat_id
+  5  FROM item;
+  6  
+  7  item_record item_cur%ROWTYPE;
+  8  
+  9  CURSOR inventory_cur(pc_item_id item.item_id%TYPE) IS
+ 10  SELECT inv_id, color, inv_size, inv_price, inv_qoh
+ 11  FROM inventory
+ 12  WHERE item_id = pc_item_id;
+ 13  
+ 14  inventory_record inventory_cur%ROWTYPE;
+ 15  
+ 16  BEGIN
+ 17  
+ 18  OPEN item_cur;
+ 19  
+ 20  FETCH item_cur INTO item_record;
+ 21  WHILE item_cur%FOUND LOOP
+ 22  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+ 23  DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
+ 24  item_record.item_desc || ' | CATEGORY ID: ' || item_record.cat_id);
+ 25  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+ 26  
+ 27  OPEN inventory_cur(item_record.item_id);
+ 28  FETCH inventory_cur INTO inventory_record;
+ 29  WHILE inventory_cur%FOUND LOOP
+ 30  DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || inventory_record.inv_id || '   Color: ' ||
+ 31  inventory_record.color || '   Size: ' || inventory_record.inv_size || '   Price: CAD$ ' ||
+ 32  inventory_record.inv_price || '   Quantity: ' || inventory_record.inv_qoh);
+ 33  FETCH inventory_cur INTO inventory_record;
+ 34  IF inventory_cur%NOTFOUND THEN
+ 35  DBMS_OUTPUT.PUT_LINE('.');
+ 36  END IF;
+ 37  END LOOP;
+ 38  CLOSE inventory_cur;
+ 39  FETCH item_cur INTO item_record;
+ 40  END LOOP;
+ 41  CLOSE item_cur;
+ 42  END;
+ 43  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_items_inv;
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 1 | ITEM DESC: Men's Expedition Parka | CATEGORY ID: 3                                                                                                                                                                                                                                             
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 23   Color: Spruce   Size: S   Price: CAD$ 1284.17   Quantity: 114                                                                                                                                                                                                                           
+|      Inv Id: 24   Color: Spruce   Size: M   Price: CAD$ 1284.17   Quantity: 17                                                                                                                                                                                                                            
+|      Inv Id: 25   Color: Spruce   Size: L   Price: CAD$ 1284.17   Quantity: 0                                                                                                                                                                                                                             
+|      Inv Id: 26   Color: Spruce   Size: XL   Price: CAD$ 1284.17   Quantity: 12                                                                                                                                                                                                                           
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 2 | ITEM DESC: 3-Season Tent | CATEGORY ID: 4                                                                                                                                                                                                                                                      
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 1   Color: Sky Blue   Size:    Price: CAD$ 1590.15   Quantity: 16                                                                                                                                                                                                                            
+|      Inv Id: 2   Color: Light Grey   Size:    Price: CAD$ 1590.15   Quantity: 12                                                                                                                                                                                                                          
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 3 | ITEM DESC: Women's Hiking Shorts | CATEGORY ID: 1                                                                                                                                                                                                                                              
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 3   Color: Khaki   Size: S   Price: CAD$ 183.29   Quantity: 150                                                                                                                                                                                                                              
+|      Inv Id: 4   Color: Khaki   Size: M   Price: CAD$ 183.29   Quantity: 147                                                                                                                                                                                                                              
+|      Inv Id: 5   Color: Khaki   Size: L   Price: CAD$ 183.29   Quantity: 0                                                                                                                                                                                                                                
+|      Inv Id: 6   Color: Navy   Size: S   Price: CAD$ 183.29   Quantity: 139                                                                                                                                                                                                                               
+|      Inv Id: 7   Color: Navy   Size: M   Price: CAD$ 183.29   Quantity: 137                                                                                                                                                                                                                               
+|      Inv Id: 8   Color: Navy   Size: L   Price: CAD$ 183.29   Quantity: 115                                                                                                                                                                                                                               
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 4 | ITEM DESC: Women's Fleece Pullover | CATEGORY ID: 1                                                                                                                                                                                                                                            
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 9   Color: Eggplant   Size: S   Price: CAD$ 366.73   Quantity: 135                                                                                                                                                                                                                           
+|      Inv Id: 10   Color: Eggplant   Size: M   Price: CAD$ 366.73   Quantity: 168                                                                                                                                                                                                                          
+|      Inv Id: 11   Color: Eggplant   Size: L   Price: CAD$ 366.73   Quantity: 187                                                                                                                                                                                                                          
+|      Inv Id: 12   Color: Royal   Size: S   Price: CAD$ 366.73   Quantity: 0                                                                                                                                                                                                                               
+|      Inv Id: 13   Color: Royal   Size: M   Price: CAD$ 366.73   Quantity: 124                                                                                                                                                                                                                             
+|      Inv Id: 14   Color: Royal   Size: L   Price: CAD$ 366.73   Quantity: 112                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 5 | ITEM DESC: Children's Beachcomber Sandals | CATEGORY ID: 2                                                                                                                                                                                                                                     
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 15   Color: Turquoise   Size: 10   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                         
+|      Inv Id: 16   Color: Turquoise   Size: 11   Price: CAD$ 97.81   Quantity: 111                                                                                                                                                                                                                         
+|      Inv Id: 17   Color: Turquoise   Size: 12   Price: CAD$ 97.81   Quantity: 113                                                                                                                                                                                                                         
+|      Inv Id: 18   Color: Turquoise   Size: 1   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                          
+|      Inv Id: 19   Color: Bright Pink   Size: 10   Price: CAD$ 97.81   Quantity: 148                                                                                                                                                                                                                       
+|      Inv Id: 20   Color: Bright Pink   Size: 11   Price: CAD$ 97.81   Quantity: 137                                                                                                                                                                                                                       
+|      Inv Id: 21   Color: Bright Pink   Size: 12   Price: CAD$ 97.81   Quantity: 134                                                                                                                                                                                                                       
+|      Inv Id: 22   Color: Bright Pink   Size: 1   Price: CAD$ 97.81   Quantity: 123                                                                                                                                                                                                                        
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 6 | ITEM DESC: Boy's Surf Shorts | CATEGORY ID: 2                                                                                                                                                                                                                                                  
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 27   Color: Blue   Size: S   Price: CAD$ 97.6   Quantity: 50                                                                                                                                                                                                                                 
+|      Inv Id: 28   Color: Blue   Size: M   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+|      Inv Id: 29   Color: Blue   Size: L   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 7 | ITEM DESC: Girl's Soccer Tee | CATEGORY ID: 2                                                                                                                                                                                                                                                  
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 30   Color: White   Size: S   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 31   Color: White   Size: M   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 32   Color: White   Size: L   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --Q4
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_items_inv2 AS
+  2  
+  3  CURSOR item_cur IS
+  4  SELECT item_id, item_desc, cat_id
+  5  FROM item;
+  6  
+  7  item_record item_cur%ROWTYPE;
+  8  
+  9  CURSOR inventory_cur(pc_item_id item.item_id%TYPE) IS
+ 10  SELECT inv_id, color, inv_size, inv_price, inv_qoh
+ 11  FROM inventory
+ 12  WHERE item_id = pc_item_id;
+ 13  
+ 14  inventory_record inventory_cur%ROWTYPE;
+ 15  item_value NUMBER;
+ 16  
+ 17  BEGIN
+ 18  
+ 19  item_value := 0;
+ 20  
+ 21  OPEN item_cur;
+ 22  
+ 23  FETCH item_cur INTO item_record;
+ 24  
+ 25  WHILE item_cur%FOUND LOOP
+ 26  
+ 27  OPEN inventory_cur(item_record.item_id);
+ 28  FETCH inventory_cur INTO inventory_record;
+ 29  WHILE inventory_cur%FOUND LOOP
+ 30  item_value := item_value + (inventory_record.inv_price * inventory_record.inv_qoh);
+ 31  FETCH inventory_cur INTO inventory_record;
+ 32  END LOOP;
+ 33  CLOSE inventory_cur;
+ 34  
+ 35  DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
+ 36  DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || item_record.item_id || ' | ITEM DESC: ' ||
+ 37  item_record.item_desc || ' | ITEM TOTAL VALUE: CAD$ ' || item_value || ' | CATEGORY ID: ' || item_record.cat_id);
+ 38  DBMS_OUTPUT.PUT_LINE('=======================================================================================================================');
+ 39  
+ 40  OPEN inventory_cur(item_record.item_id);
+ 41  FETCH inventory_cur INTO inventory_record;
+ 42  WHILE inventory_cur%FOUND LOOP
+ 43  DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || inventory_record.inv_id || '   Color: ' ||
+ 44  inventory_record.color || '   Size: ' || inventory_record.inv_size || '   Price: CAD$ ' ||
+ 45  inventory_record.inv_price || '   Quantity: ' || inventory_record.inv_qoh || '   Value: CAD$ ' || inventory_record.inv_qoh * inventory_record.inv_price);
+ 46  FETCH inventory_cur INTO inventory_record;
+ 47  IF inventory_cur%NOTFOUND THEN
+ 48  DBMS_OUTPUT.PUT_LINE('.');
+ 49  END IF;
+ 50  END LOOP;
+ 51  CLOSE inventory_cur;
+ 52  FETCH item_cur INTO item_record;
+ 53  item_value := 0;
+ 54  END LOOP;
+ 55  CLOSE item_cur;
+ 56  END;
+ 57  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_items_inv2;
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 1 | ITEM DESC: Men's Expedition Parka | ITEM TOTAL VALUE: CAD$ 183636.31 | CATEGORY ID: 3                                                                                                                                                                                                          
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 23   Color: Spruce   Size: S   Price: CAD$ 1284.17   Quantity: 114   Value: CAD$ 146395.38                                                                                                                                                                                                   
+|      Inv Id: 24   Color: Spruce   Size: M   Price: CAD$ 1284.17   Quantity: 17   Value: CAD$ 21830.89                                                                                                                                                                                                     
+|      Inv Id: 25   Color: Spruce   Size: L   Price: CAD$ 1284.17   Quantity: 0   Value: CAD$ 0                                                                                                                                                                                                             
+|      Inv Id: 26   Color: Spruce   Size: XL   Price: CAD$ 1284.17   Quantity: 12   Value: CAD$ 15410.04                                                                                                                                                                                                    
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 2 | ITEM DESC: 3-Season Tent | ITEM TOTAL VALUE: CAD$ 44524.2 | CATEGORY ID: 4                                                                                                                                                                                                                     
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 1   Color: Sky Blue   Size:    Price: CAD$ 1590.15   Quantity: 16   Value: CAD$ 25442.4                                                                                                                                                                                                      
+|      Inv Id: 2   Color: Light Grey   Size:    Price: CAD$ 1590.15   Quantity: 12   Value: CAD$ 19081.8                                                                                                                                                                                                    
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 3 | ITEM DESC: Women's Hiking Shorts | ITEM TOTAL VALUE: CAD$ 126103.52 | CATEGORY ID: 1                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 3   Color: Khaki   Size: S   Price: CAD$ 183.29   Quantity: 150   Value: CAD$ 27493.5                                                                                                                                                                                                        
+|      Inv Id: 4   Color: Khaki   Size: M   Price: CAD$ 183.29   Quantity: 147   Value: CAD$ 26943.63                                                                                                                                                                                                       
+|      Inv Id: 5   Color: Khaki   Size: L   Price: CAD$ 183.29   Quantity: 0   Value: CAD$ 0                                                                                                                                                                                                                
+|      Inv Id: 6   Color: Navy   Size: S   Price: CAD$ 183.29   Quantity: 139   Value: CAD$ 25477.31                                                                                                                                                                                                        
+|      Inv Id: 7   Color: Navy   Size: M   Price: CAD$ 183.29   Quantity: 137   Value: CAD$ 25110.73                                                                                                                                                                                                        
+|      Inv Id: 8   Color: Navy   Size: L   Price: CAD$ 183.29   Quantity: 115   Value: CAD$ 21078.35                                                                                                                                                                                                        
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 4 | ITEM DESC: Women's Fleece Pullover | ITEM TOTAL VALUE: CAD$ 266245.98 | CATEGORY ID: 1                                                                                                                                                                                                         
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 9   Color: Eggplant   Size: S   Price: CAD$ 366.73   Quantity: 135   Value: CAD$ 49508.55                                                                                                                                                                                                    
+|      Inv Id: 10   Color: Eggplant   Size: M   Price: CAD$ 366.73   Quantity: 168   Value: CAD$ 61610.64                                                                                                                                                                                                   
+|      Inv Id: 11   Color: Eggplant   Size: L   Price: CAD$ 366.73   Quantity: 187   Value: CAD$ 68578.51                                                                                                                                                                                                   
+|      Inv Id: 12   Color: Royal   Size: S   Price: CAD$ 366.73   Quantity: 0   Value: CAD$ 0                                                                                                                                                                                                               
+|      Inv Id: 13   Color: Royal   Size: M   Price: CAD$ 366.73   Quantity: 124   Value: CAD$ 45474.52                                                                                                                                                                                                      
+|      Inv Id: 14   Color: Royal   Size: L   Price: CAD$ 366.73   Quantity: 112   Value: CAD$ 41073.76                                                                                                                                                                                                      
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 5 | ITEM DESC: Children's Beachcomber Sandals | ITEM TOTAL VALUE: CAD$ 98592.48 | CATEGORY ID: 2                                                                                                                                                                                                   
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 15   Color: Turquoise   Size: 10   Price: CAD$ 97.81   Quantity: 121   Value: CAD$ 11835.01                                                                                                                                                                                                  
+|      Inv Id: 16   Color: Turquoise   Size: 11   Price: CAD$ 97.81   Quantity: 111   Value: CAD$ 10856.91                                                                                                                                                                                                  
+|      Inv Id: 17   Color: Turquoise   Size: 12   Price: CAD$ 97.81   Quantity: 113   Value: CAD$ 11052.53                                                                                                                                                                                                  
+|      Inv Id: 18   Color: Turquoise   Size: 1   Price: CAD$ 97.81   Quantity: 121   Value: CAD$ 11835.01                                                                                                                                                                                                   
+|      Inv Id: 19   Color: Bright Pink   Size: 10   Price: CAD$ 97.81   Quantity: 148   Value: CAD$ 14475.88                                                                                                                                                                                                
+|      Inv Id: 20   Color: Bright Pink   Size: 11   Price: CAD$ 97.81   Quantity: 137   Value: CAD$ 13399.97                                                                                                                                                                                                
+|      Inv Id: 21   Color: Bright Pink   Size: 12   Price: CAD$ 97.81   Quantity: 134   Value: CAD$ 13106.54                                                                                                                                                                                                
+|      Inv Id: 22   Color: Bright Pink   Size: 1   Price: CAD$ 97.81   Quantity: 123   Value: CAD$ 12030.63                                                                                                                                                                                                 
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 6 | ITEM DESC: Boy's Surf Shorts | ITEM TOTAL VALUE: CAD$ 24400 | CATEGORY ID: 2                                                                                                                                                                                                                   
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 27   Color: Blue   Size: S   Price: CAD$ 97.6   Quantity: 50   Value: CAD$ 4880                                                                                                                                                                                                              
+|      Inv Id: 28   Color: Blue   Size: M   Price: CAD$ 97.6   Quantity: 100   Value: CAD$ 9760                                                                                                                                                                                                             
+|      Inv Id: 29   Color: Blue   Size: L   Price: CAD$ 97.6   Quantity: 100   Value: CAD$ 9760                                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================================================================                                                                                                                                                                                     
+ITEM ID: 7 | ITEM DESC: Girl's Soccer Tee | ITEM TOTAL VALUE: CAD$ 36702 | CATEGORY ID: 2                                                                                                                                                                                                                   
+=======================================================================================================================                                                                                                                                                                                     
+|      Inv Id: 30   Color: White   Size: S   Price: CAD$ 122.34   Quantity: 100   Value: CAD$ 12234                                                                                                                                                                                                         
+|      Inv Id: 31   Color: White   Size: M   Price: CAD$ 122.34   Quantity: 100   Value: CAD$ 12234                                                                                                                                                                                                         
+|      Inv Id: 32   Color: White   Size: L   Price: CAD$ 122.34   Quantity: 100   Value: CAD$ 12234                                                                                                                                                                                                         
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --Q5
+SQL> 
+SQL> CONNECT des04/des04;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE cons_skill_updater(p_c_Id_IN NUMBER, p_certification_IN VARCHAR2) AS
+  2  
+  3  CURSOR consultant_cur IS
+  4  SELECT c_id, c_first, c_last, c_email
+  5  FROM consultant;
+  6  
+  7  consultant_record consultant_cur%ROWTYPE;
+  8  
+  9  CURSOR consultant_skills_cur(pc_consultant_id consultant.c_id%TYPE) IS
+ 10  SELECT cs.skill_id, s.skill_description, cs.certification
+ 11  FROM consultant_skill cs
+ 12  JOIN skill s
+ 13  ON cs.skill_id = s.skill_id
+ 14  WHERE cs.c_id = pc_consultant_id;
+ 15  
+ 16  skill_record consultant_skills_cur%ROWTYPE;
+ 17  ex_wrong_cert_found EXCEPTION;
+ 18  
+ 19  BEGIN
+ 20  
+ 21  IF p_certification_IN NOT LIKE 'Y' AND p_certification_IN NOT LIKE 'N' THEN
+ 22  RAISE ex_wrong_cert_found;
+ 23  END IF;
+ 24  
+ 25  OPEN consultant_cur;
+ 26  
+ 27  FETCH consultant_cur INTO consultant_record;
+ 28  
+ 29  WHILE consultant_cur%FOUND LOOP
+ 30  DBMS_OUTPUT.PUT_LINE('======================================================================================================================================');
+ 31  DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '     | FIRST NAME: ' || consultant_record.c_first || '     | LAST NAME: ' || consultant_record.c_last || '     | EMAIL: ' || consultant_record.c_email);
+ 32  DBMS_OUTPUT.PUT_LINE('======================================================================================================================================');
+ 33  
+ 34  OPEN consultant_skills_cur(consultant_record.c_id);
+ 35  FETCH consultant_skills_cur INTO skill_record;
+ 36  WHILE consultant_skills_cur%FOUND LOOP
+ 37  IF consultant_record.c_id = p_c_Id_IN THEN
+ 38  
+ 39  DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    | Skill Description: ' || skill_record.skill_description || '    | Old Certification Status: ' || skill_record.certification || '                    | New Certification status: ' || p_certification_IN);
+ 40  
+ 41  UPDATE consultant_skill
+ 42  SET certification = p_certification_IN
+ 43  WHERE c_id = consultant_record.c_id AND skill_id = skill_record.skill_id;
+ 44  
+ 45   ELSE
+ 46  DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '     | Skill Description: ' || skill_record.skill_description || '                | Certification Status: ' || skill_record.certification);
+ 47  
+ 48  END IF;
+ 49  FETCH consultant_skills_cur INTO skill_record;
+ 50  IF consultant_skills_cur%NOTFOUND THEN
+ 51  DBMS_OUTPUT.PUT_LINE('.');
+ 52  END IF;
+ 53  END LOOP;
+ 54  CLOSE consultant_skills_cur;
+ 55  FETCH consultant_cur INTO consultant_record;
+ 56  END LOOP;
+ 57  CLOSE consultant_cur;
+ 58  EXCEPTION
+ 59  WHEN ex_wrong_cert_found THEN
+ 60  DBMS_OUTPUT.PUT_LINE('Invalid certification input type. Must be either Y or N.');
+ 61  END;
+ 62  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> EXEC cons_skill_updater(100,'Z');
+Invalid certification input type. Must be either Y or N.                                                                                                                                                                                                                                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC cons_skill_updater(100,'Y');
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 100     | FIRST NAME: Mark     | LAST NAME: Myers     | EMAIL: mmyers@swexpert.com                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 1    | Skill Description: VB .NET Programming    | Old Certification Status: Y                    | New Certification status: Y                                                                                                                                                                   
+Skill ID: 3    | Skill Description: Java Programming    | Old Certification Status: N                    | New Certification status: Y                                                                                                                                                                      
+Skill ID: 6    | Skill Description: Oracle Developer Programming    | Old Certification Status: Y                    | New Certification status: Y                                                                                                                                                          
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 101     | FIRST NAME: Sheila     | LAST NAME: Hernandez     | EMAIL: shernandez@earthware.com                                                                                                                                                                                                
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 4     | Skill Description: Project Management                | Certification Status: N                                                                                                                                                                                                            
+Skill ID: 5     | Skill Description: Web Application Programming                | Certification Status: N                                                                                                                                                                                                   
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 102     | FIRST NAME: Brian     | LAST NAME: Zhang     | EMAIL: zhang@swexpert.com                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 7     | Skill Description: Oracle Database Administration                | Certification Status: Y                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 103     | FIRST NAME: Sarah     | LAST NAME: Carlson     | EMAIL: carlsons@swexpert.com                                                                                                                                                                                                      
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 1     | Skill Description: VB .NET Programming                | Certification Status: Y                                                                                                                                                                                                           
+Skill ID: 6     | Skill Description: Oracle Developer Programming                | Certification Status: Y                                                                                                                                                                                                  
+Skill ID: 8     | Skill Description: Windows NT/2000 Network Administration                | Certification Status: Y                                                                                                                                                                                        
+Skill ID: 9     | Skill Description: Windows XP Network Administration                | Certification Status: Y                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 104     | FIRST NAME: Paul     | LAST NAME: Courtlandt     | EMAIL: courtlpr@yamail.com                                                                                                                                                                                                      
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 8     | Skill Description: Windows NT/2000 Network Administration                | Certification Status: N                                                                                                                                                                                        
+Skill ID: 9     | Skill Description: Windows XP Network Administration                | Certification Status: Y                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 105     | FIRST NAME: Janet     | LAST NAME: Park     | EMAIL: jpark@swexpert.com                                                                                                                                                                                                            
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 2     | Skill Description: COBOL Programming                | Certification Status: N                                                                                                                                                                                                             
+Skill ID: 3     | Skill Description: Java Programming                | Certification Status: N                                                                                                                                                                                                              
+Skill ID: 4     | Skill Description: Project Management                | Certification Status: Y                                                                                                                                                                                                            
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC cons_skill_updater(105,'Y');
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 100     | FIRST NAME: Mark     | LAST NAME: Myers     | EMAIL: mmyers@swexpert.com                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 1     | Skill Description: VB .NET Programming                | Certification Status: Y                                                                                                                                                                                                           
+Skill ID: 3     | Skill Description: Java Programming                | Certification Status: Y                                                                                                                                                                                                              
+Skill ID: 6     | Skill Description: Oracle Developer Programming                | Certification Status: Y                                                                                                                                                                                                  
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 101     | FIRST NAME: Sheila     | LAST NAME: Hernandez     | EMAIL: shernandez@earthware.com                                                                                                                                                                                                
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 4     | Skill Description: Project Management                | Certification Status: N                                                                                                                                                                                                            
+Skill ID: 5     | Skill Description: Web Application Programming                | Certification Status: N                                                                                                                                                                                                   
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 102     | FIRST NAME: Brian     | LAST NAME: Zhang     | EMAIL: zhang@swexpert.com                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 7     | Skill Description: Oracle Database Administration                | Certification Status: Y                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 103     | FIRST NAME: Sarah     | LAST NAME: Carlson     | EMAIL: carlsons@swexpert.com                                                                                                                                                                                                      
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 1     | Skill Description: VB .NET Programming                | Certification Status: Y                                                                                                                                                                                                           
+Skill ID: 6     | Skill Description: Oracle Developer Programming                | Certification Status: Y                                                                                                                                                                                                  
+Skill ID: 8     | Skill Description: Windows NT/2000 Network Administration                | Certification Status: Y                                                                                                                                                                                        
+Skill ID: 9     | Skill Description: Windows XP Network Administration                | Certification Status: Y                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 104     | FIRST NAME: Paul     | LAST NAME: Courtlandt     | EMAIL: courtlpr@yamail.com                                                                                                                                                                                                      
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 8     | Skill Description: Windows NT/2000 Network Administration                | Certification Status: N                                                                                                                                                                                        
+Skill ID: 9     | Skill Description: Windows XP Network Administration                | Certification Status: Y                                                                                                                                                                                             
+.                                                                                                                                                                                                                                                                                                           
+======================================================================================================================================                                                                                                                                                                      
+CONSULTANT ID: 105     | FIRST NAME: Janet     | LAST NAME: Park     | EMAIL: jpark@swexpert.com                                                                                                                                                                                                            
+======================================================================================================================================                                                                                                                                                                      
+Skill ID: 2    | Skill Description: COBOL Programming    | Old Certification Status: N                    | New Certification status: Y                                                                                                                                                                     
+Skill ID: 3    | Skill Description: Java Programming    | Old Certification Status: N                    | New Certification status: Y                                                                                                                                                                      
+Skill ID: 4    | Skill Description: Project Management    | Old Certification Status: Y                    | New Certification status: Y                                                                                                                                                                    
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF

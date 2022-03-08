@@ -1,0 +1,397 @@
+SQL> -- Q1 ---------------------------------------------
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> CONNECT des03/des03;
+Connected.
+SQL> SET SERVEROUTPUT ON;
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_fac_mem_for_loop AS
+  2  
+  3  CURSOR fac_cur IS
+  4  SELECT f_id, f_last, f_first, f_rank
+  5  FROM faculty;
+  6  
+  7  CURSOR student_cur(pc_f_id faculty.f_id%TYPE) IS
+  8  SELECT s_id, s_last, s_first, s_dob, s_class
+  9  FROM student
+ 10  WHERE f_id = pc_f_id;
+ 11  
+ 12  v_currentId faculty.f_id%TYPE;
+ 13  
+ 14  BEGIN
+ 15  
+ 16  FOR c_index IN fac_cur LOOP
+ 17  DBMS_OUTPUT.PUT_LINE('====================================================================================================');
+ 18  DBMS_OUTPUT.PUT_LINE('FACULTY MEMBER ID: ' || c_index.f_id || ' - FIRST NAME:  ' || c_index.f_first || ' - LAST NAME: ' ||
+ 19  c_index.f_last || ' - Rank : ' || c_index.f_rank);
+ 20  DBMS_OUTPUT.PUT_LINE('====================================================================================================');
+ 21  
+ 22      v_currentId := c_index.f_id;
+ 23  
+ 24  FOR z_index IN student_cur(v_currentId) LOOP
+ 25  
+ 26  DBMS_OUTPUT.PUT_LINE('|       Student ID: ' || z_index.s_id || ' - First Name: ' || z_index.s_first || ' - Last Name: ' ||
+ 27  z_index.s_last || ' - Birthdate: ' || z_index.s_dob || ' - class: ' || z_index.s_class);
+ 28  IF student_cur%FOUND THEN
+ 29  DBMS_OUTPUT.PUT_LINE('---------');
+ 30  END IF;
+ 31  END LOOP;
+ 32  IF fac_cur%FOUND THEN
+ 33  DBMS_OUTPUT.PUT_LINE('|');
+ 34  END IF;
+ 35  END LOOP;
+ 36  END;
+ 37  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_fac_mem_for_loop;
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 1 - FIRST NAME:  Kim - LAST NAME: Cox - Rank : ASSO                                                                                                                                                                                                                                      
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 1 - First Name: Sarah - Last Name: Miller - Birthdate: 85-07-14 - class: SR                                                                                                                                                                                                             
+---------                                                                                                                                                                                                                                                                                                   
+|       Student ID: 2 - First Name: Brian - Last Name: Umato - Birthdate: 85-08-19 - class: SR                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Student ID: 3 - First Name: Daniel - Last Name: Black - Birthdate: 82-10-10 - class: JR                                                                                                                                                                                                             
+---------                                                                                                                                                                                                                                                                                                   
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 2 - FIRST NAME:  John - LAST NAME: Blanchard - Rank : FULL                                                                                                                                                                                                                               
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 4 - First Name: Amanda - Last Name: Mobley - Birthdate: 86-09-24 - class: SO                                                                                                                                                                                                            
+---------                                                                                                                                                                                                                                                                                                   
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 3 - FIRST NAME:  Jerry - LAST NAME: Williams - Rank : ASST                                                                                                                                                                                                                               
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 6 - First Name: Michael - Last Name: Connoly - Birthdate: 86-12-04 - class: FR                                                                                                                                                                                                          
+---------                                                                                                                                                                                                                                                                                                   
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 4 - FIRST NAME:  Laura - LAST NAME: Sheng - Rank : INST                                                                                                                                                                                                                                  
+====================================================================================================                                                                                                                                                                                                        
+|       Student ID: 5 - First Name: Ruben - Last Name: Sanchez - Birthdate: 86-11-20 - class: SO                                                                                                                                                                                                            
+---------                                                                                                                                                                                                                                                                                                   
+|                                                                                                                                                                                                                                                                                                           
+====================================================================================================                                                                                                                                                                                                        
+FACULTY MEMBER ID: 5 - FIRST NAME:  Philip - LAST NAME: Brown - Rank : ASSO                                                                                                                                                                                                                                 
+====================================================================================================                                                                                                                                                                                                        
+|                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- Q2 --------------------------------------------
+SQL> 
+SQL> CONNECT des04/des04;
+Connected.
+SQL> SET SERVEROUTPUT ON;
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_consultants AS
+  2  
+  3  CURSOR consultant_cur IS
+  4  SELECT c_id, c_first, c_last
+  5  FROM consultant;
+  6  
+  7  CURSOR consultant_skill_cur(pc_consultant_id consultant.c_id%TYPE) IS
+  8  
+  9  SELECT s.skill_id, s.skill_description, cs.certification, cs.c_id
+ 10  FROM skill S
+ 11  JOIN consultant_skill cs
+ 12  ON s.skill_id = cs.skill_id
+ 13  WHERE cs.c_id = pc_consultant_id;
+ 14  
+ 15  consultant_record consultant_cur%ROWTYPE;
+ 16  skill_record consultant_skill_cur%ROWTYPE;
+ 17  
+ 18  BEGIN
+ 19  
+ 20  OPEN consultant_cur;
+ 21  
+ 22  FETCH consultant_cur INTO consultant_record;
+ 23  
+ 24  WHILE consultant_cur%FOUND LOOP
+ 25  DBMS_OUTPUT.PUT_LINE('=======================================================================');
+ 26  DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '    FIRST NAME: ' ||
+ 27  consultant_record.c_first || '    LAST NAME: ' || consultant_record.c_last);
+ 28  DBMS_OUTPUT.PUT_LINE('=======================================================================');
+ 29  
+ 30  OPEN consultant_skill_cur(consultant_record.c_id);
+ 31  FETCH consultant_skill_cur INTO skill_record;
+ 32  
+ 33  WHILE consultant_skill_cur%FOUND LOOP
+ 34  DBMS_OUTPUT.PUT_LINE('|       ' || skill_record.skill_description || ' - Certification: ' || skill_record.certification);
+ 35  FETCH consultant_skill_cur INTO skill_record;
+ 36  IF consultant_skill_cur%FOUND THEN
+ 37  DBMS_OUTPUT.PUT_LINE('---------');
+ 38  ELSE
+ 39  DBMS_OUTPUT.PUT_LINE('.');
+ 40  END IF;
+ 41  END LOOP;
+ 42  CLOSE consultant_skill_cur;
+ 43  
+ 44  FETCH consultant_cur INTO consultant_record;
+ 45  END LOOP;
+ 46  
+ 47  CLOSE consultant_cur;
+ 48  END;
+ 49  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_consultants;
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 100    FIRST NAME: Mark    LAST NAME: Myers                                                                                                                                                                                                                                                  
+=======================================================================                                                                                                                                                                                                                                     
+|       VB .NET Programming - Certification: Y                                                                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Java Programming - Certification: N                                                                                                                                                                                                                                                                 
+---------                                                                                                                                                                                                                                                                                                   
+|       Oracle Developer Programming - Certification: Y                                                                                                                                                                                                                                                     
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 101    FIRST NAME: Sheila    LAST NAME: Hernandez                                                                                                                                                                                                                                            
+=======================================================================                                                                                                                                                                                                                                     
+|       Project Management - Certification: N                                                                                                                                                                                                                                                               
+---------                                                                                                                                                                                                                                                                                                   
+|       Web Application Programming - Certification: N                                                                                                                                                                                                                                                      
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 102    FIRST NAME: Brian    LAST NAME: Zhang                                                                                                                                                                                                                                                 
+=======================================================================                                                                                                                                                                                                                                     
+|       Oracle Database Administration - Certification: Y                                                                                                                                                                                                                                                   
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 103    FIRST NAME: Sarah    LAST NAME: Carlson                                                                                                                                                                                                                                               
+=======================================================================                                                                                                                                                                                                                                     
+|       VB .NET Programming - Certification: Y                                                                                                                                                                                                                                                              
+---------                                                                                                                                                                                                                                                                                                   
+|       Oracle Developer Programming - Certification: Y                                                                                                                                                                                                                                                     
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows NT/2000 Network Administration - Certification: Y                                                                                                                                                                                                                                           
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows XP Network Administration - Certification: Y                                                                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 104    FIRST NAME: Paul    LAST NAME: Courtlandt                                                                                                                                                                                                                                             
+=======================================================================                                                                                                                                                                                                                                     
+|       Windows NT/2000 Network Administration - Certification: N                                                                                                                                                                                                                                           
+---------                                                                                                                                                                                                                                                                                                   
+|       Windows XP Network Administration - Certification: Y                                                                                                                                                                                                                                                
+.                                                                                                                                                                                                                                                                                                           
+=======================================================================                                                                                                                                                                                                                                     
+CONSULTANT ID: 105    FIRST NAME: Janet    LAST NAME: Park                                                                                                                                                                                                                                                  
+=======================================================================                                                                                                                                                                                                                                     
+|       COBOL Programming - Certification: N                                                                                                                                                                                                                                                                
+---------                                                                                                                                                                                                                                                                                                   
+|       Java Programming - Certification: N                                                                                                                                                                                                                                                                 
+---------                                                                                                                                                                                                                                                                                                   
+|       Project Management - Certification: Y                                                                                                                                                                                                                                                               
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --Q3 -----------------------------------------------------
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_items_inv AS
+  2  
+  3  v_currentID item.item_id%TYPE;
+  4  
+  5  BEGIN
+  6  
+  7  FOR c_index IN (SELECT item_id, item_desc, cat_id FROM item) LOOP
+  8  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+  9  DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || c_index.item_id || ' | ITEM DESC: ' ||
+ 10  c_index.item_desc || ' | CATEGORY ID: ' || c_index.cat_id);
+ 11  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+ 12  
+ 13      v_currentID := c_index.item_id;
+ 14  
+ 15  FOR z_index IN (SELECT inv_id, color, inv_size, inv_price, inv_qoh FROM inventory WHERE item_id = v_currentID) LOOP
+ 16  DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || z_index.inv_id || '   Color: ' ||
+ 17  z_index.color || '   Size: ' || z_index.inv_size || '   Price: CAD$ ' ||
+ 18  z_index.inv_price || '   Quantity: ' || z_index.inv_qoh);
+ 19  END LOOP;
+ 20  END LOOP;
+ 21  END;
+ 22  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_items_inv;
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 1 | ITEM DESC: Men's Expedition Parka | CATEGORY ID: 3                                                                                                                                                                                                                                             
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 23   Color: Spruce   Size: S   Price: CAD$ 1284.17   Quantity: 114                                                                                                                                                                                                                           
+|      Inv Id: 24   Color: Spruce   Size: M   Price: CAD$ 1284.17   Quantity: 17                                                                                                                                                                                                                            
+|      Inv Id: 25   Color: Spruce   Size: L   Price: CAD$ 1284.17   Quantity: 0                                                                                                                                                                                                                             
+|      Inv Id: 26   Color: Spruce   Size: XL   Price: CAD$ 1284.17   Quantity: 12                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 2 | ITEM DESC: 3-Season Tent | CATEGORY ID: 4                                                                                                                                                                                                                                                      
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 1   Color: Sky Blue   Size:    Price: CAD$ 1590.15   Quantity: 16                                                                                                                                                                                                                            
+|      Inv Id: 2   Color: Light Grey   Size:    Price: CAD$ 1590.15   Quantity: 12                                                                                                                                                                                                                          
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 3 | ITEM DESC: Women's Hiking Shorts | CATEGORY ID: 1                                                                                                                                                                                                                                              
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 3   Color: Khaki   Size: S   Price: CAD$ 183.29   Quantity: 150                                                                                                                                                                                                                              
+|      Inv Id: 4   Color: Khaki   Size: M   Price: CAD$ 183.29   Quantity: 147                                                                                                                                                                                                                              
+|      Inv Id: 5   Color: Khaki   Size: L   Price: CAD$ 183.29   Quantity: 0                                                                                                                                                                                                                                
+|      Inv Id: 6   Color: Navy   Size: S   Price: CAD$ 183.29   Quantity: 139                                                                                                                                                                                                                               
+|      Inv Id: 7   Color: Navy   Size: M   Price: CAD$ 183.29   Quantity: 137                                                                                                                                                                                                                               
+|      Inv Id: 8   Color: Navy   Size: L   Price: CAD$ 183.29   Quantity: 115                                                                                                                                                                                                                               
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 4 | ITEM DESC: Women's Fleece Pullover | CATEGORY ID: 1                                                                                                                                                                                                                                            
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 9   Color: Eggplant   Size: S   Price: CAD$ 366.73   Quantity: 135                                                                                                                                                                                                                           
+|      Inv Id: 10   Color: Eggplant   Size: M   Price: CAD$ 366.73   Quantity: 168                                                                                                                                                                                                                          
+|      Inv Id: 11   Color: Eggplant   Size: L   Price: CAD$ 366.73   Quantity: 187                                                                                                                                                                                                                          
+|      Inv Id: 12   Color: Royal   Size: S   Price: CAD$ 366.73   Quantity: 0                                                                                                                                                                                                                               
+|      Inv Id: 13   Color: Royal   Size: M   Price: CAD$ 366.73   Quantity: 124                                                                                                                                                                                                                             
+|      Inv Id: 14   Color: Royal   Size: L   Price: CAD$ 366.73   Quantity: 112                                                                                                                                                                                                                             
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 5 | ITEM DESC: Children's Beachcomber Sandals | CATEGORY ID: 2                                                                                                                                                                                                                                     
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 15   Color: Turquoise   Size: 10   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                         
+|      Inv Id: 16   Color: Turquoise   Size: 11   Price: CAD$ 97.81   Quantity: 111                                                                                                                                                                                                                         
+|      Inv Id: 17   Color: Turquoise   Size: 12   Price: CAD$ 97.81   Quantity: 113                                                                                                                                                                                                                         
+|      Inv Id: 18   Color: Turquoise   Size: 1   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                          
+|      Inv Id: 19   Color: Bright Pink   Size: 10   Price: CAD$ 97.81   Quantity: 148                                                                                                                                                                                                                       
+|      Inv Id: 20   Color: Bright Pink   Size: 11   Price: CAD$ 97.81   Quantity: 137                                                                                                                                                                                                                       
+|      Inv Id: 21   Color: Bright Pink   Size: 12   Price: CAD$ 97.81   Quantity: 134                                                                                                                                                                                                                       
+|      Inv Id: 22   Color: Bright Pink   Size: 1   Price: CAD$ 97.81   Quantity: 123                                                                                                                                                                                                                        
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 6 | ITEM DESC: Boy's Surf Shorts | CATEGORY ID: 2                                                                                                                                                                                                                                                  
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 27   Color: Blue   Size: S   Price: CAD$ 97.6   Quantity: 50                                                                                                                                                                                                                                 
+|      Inv Id: 28   Color: Blue   Size: M   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+|      Inv Id: 29   Color: Blue   Size: L   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 7 | ITEM DESC: Girl's Soccer Tee | CATEGORY ID: 2                                                                                                                                                                                                                                                  
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 30   Color: White   Size: S   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 31   Color: White   Size: M   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 32   Color: White   Size: L   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> -- Q4 ----------------------------------------------
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE display_all_items_inv AS
+  2  
+  3  v_item_value NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  v_item_value := 0;
+  8  
+  9  FOR a_index IN (SELECT item_id, item_desc, cat_id FROM item) LOOP
+ 10  
+ 11  FOR b_index IN (SELECT inv_price, inv_qoh FROM inventory WHERE item_id = a_index.item_id) LOOP
+ 12          v_item_value := v_item_value + (b_index.inv_price * b_index.inv_qoh);
+ 13      END LOOP;
+ 14  
+ 15  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+ 16  DBMS_OUTPUT.PUT_LINE('ITEM ID: ' || a_index.item_id || ' | ITEM DESC: ' ||
+ 17  a_index.item_desc || ' | ITEM VALUE: $CAD ' || v_item_value || ' | CATEGORY ID: ' || a_index.cat_id);
+ 18  DBMS_OUTPUT.PUT_LINE('=========================================================================================');
+ 19  
+ 20  FOR c_index IN (SELECT inv_id, color, inv_size, inv_price, inv_qoh FROM inventory WHERE item_id = a_index.item_id) LOOP
+ 21  DBMS_OUTPUT.PUT_LINE('|      Inv Id: ' || c_index.inv_id || '   Color: ' ||
+ 22  c_index.color || '   Size: ' || c_index.inv_size || '   Price: CAD$ ' ||
+ 23  c_index.inv_price || '   Quantity: ' || c_index.inv_qoh);
+ 24  END LOOP;
+ 25  v_item_value := 0;
+ 26  END LOOP;
+ 27  END;
+ 28  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC display_all_items_inv;
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 1 | ITEM DESC: Men's Expedition Parka | ITEM VALUE: $CAD 183636.31 | CATEGORY ID: 3                                                                                                                                                                                                                
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 23   Color: Spruce   Size: S   Price: CAD$ 1284.17   Quantity: 114                                                                                                                                                                                                                           
+|      Inv Id: 24   Color: Spruce   Size: M   Price: CAD$ 1284.17   Quantity: 17                                                                                                                                                                                                                            
+|      Inv Id: 25   Color: Spruce   Size: L   Price: CAD$ 1284.17   Quantity: 0                                                                                                                                                                                                                             
+|      Inv Id: 26   Color: Spruce   Size: XL   Price: CAD$ 1284.17   Quantity: 12                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 2 | ITEM DESC: 3-Season Tent | ITEM VALUE: $CAD 44524.2 | CATEGORY ID: 4                                                                                                                                                                                                                           
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 1   Color: Sky Blue   Size:    Price: CAD$ 1590.15   Quantity: 16                                                                                                                                                                                                                            
+|      Inv Id: 2   Color: Light Grey   Size:    Price: CAD$ 1590.15   Quantity: 12                                                                                                                                                                                                                          
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 3 | ITEM DESC: Women's Hiking Shorts | ITEM VALUE: $CAD 126103.52 | CATEGORY ID: 1                                                                                                                                                                                                                 
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 3   Color: Khaki   Size: S   Price: CAD$ 183.29   Quantity: 150                                                                                                                                                                                                                              
+|      Inv Id: 4   Color: Khaki   Size: M   Price: CAD$ 183.29   Quantity: 147                                                                                                                                                                                                                              
+|      Inv Id: 5   Color: Khaki   Size: L   Price: CAD$ 183.29   Quantity: 0                                                                                                                                                                                                                                
+|      Inv Id: 6   Color: Navy   Size: S   Price: CAD$ 183.29   Quantity: 139                                                                                                                                                                                                                               
+|      Inv Id: 7   Color: Navy   Size: M   Price: CAD$ 183.29   Quantity: 137                                                                                                                                                                                                                               
+|      Inv Id: 8   Color: Navy   Size: L   Price: CAD$ 183.29   Quantity: 115                                                                                                                                                                                                                               
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 4 | ITEM DESC: Women's Fleece Pullover | ITEM VALUE: $CAD 266245.98 | CATEGORY ID: 1                                                                                                                                                                                                               
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 9   Color: Eggplant   Size: S   Price: CAD$ 366.73   Quantity: 135                                                                                                                                                                                                                           
+|      Inv Id: 10   Color: Eggplant   Size: M   Price: CAD$ 366.73   Quantity: 168                                                                                                                                                                                                                          
+|      Inv Id: 11   Color: Eggplant   Size: L   Price: CAD$ 366.73   Quantity: 187                                                                                                                                                                                                                          
+|      Inv Id: 12   Color: Royal   Size: S   Price: CAD$ 366.73   Quantity: 0                                                                                                                                                                                                                               
+|      Inv Id: 13   Color: Royal   Size: M   Price: CAD$ 366.73   Quantity: 124                                                                                                                                                                                                                             
+|      Inv Id: 14   Color: Royal   Size: L   Price: CAD$ 366.73   Quantity: 112                                                                                                                                                                                                                             
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 5 | ITEM DESC: Children's Beachcomber Sandals | ITEM VALUE: $CAD 98592.48 | CATEGORY ID: 2                                                                                                                                                                                                         
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 15   Color: Turquoise   Size: 10   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                         
+|      Inv Id: 16   Color: Turquoise   Size: 11   Price: CAD$ 97.81   Quantity: 111                                                                                                                                                                                                                         
+|      Inv Id: 17   Color: Turquoise   Size: 12   Price: CAD$ 97.81   Quantity: 113                                                                                                                                                                                                                         
+|      Inv Id: 18   Color: Turquoise   Size: 1   Price: CAD$ 97.81   Quantity: 121                                                                                                                                                                                                                          
+|      Inv Id: 19   Color: Bright Pink   Size: 10   Price: CAD$ 97.81   Quantity: 148                                                                                                                                                                                                                       
+|      Inv Id: 20   Color: Bright Pink   Size: 11   Price: CAD$ 97.81   Quantity: 137                                                                                                                                                                                                                       
+|      Inv Id: 21   Color: Bright Pink   Size: 12   Price: CAD$ 97.81   Quantity: 134                                                                                                                                                                                                                       
+|      Inv Id: 22   Color: Bright Pink   Size: 1   Price: CAD$ 97.81   Quantity: 123                                                                                                                                                                                                                        
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 6 | ITEM DESC: Boy's Surf Shorts | ITEM VALUE: $CAD 24400 | CATEGORY ID: 2                                                                                                                                                                                                                         
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 27   Color: Blue   Size: S   Price: CAD$ 97.6   Quantity: 50                                                                                                                                                                                                                                 
+|      Inv Id: 28   Color: Blue   Size: M   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+|      Inv Id: 29   Color: Blue   Size: L   Price: CAD$ 97.6   Quantity: 100                                                                                                                                                                                                                                
+=========================================================================================                                                                                                                                                                                                                   
+ITEM ID: 7 | ITEM DESC: Girl's Soccer Tee | ITEM VALUE: $CAD 36702 | CATEGORY ID: 2                                                                                                                                                                                                                         
+=========================================================================================                                                                                                                                                                                                                   
+|      Inv Id: 30   Color: White   Size: S   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 31   Color: White   Size: M   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+|      Inv Id: 32   Color: White   Size: L   Price: CAD$ 122.34   Quantity: 100                                                                                                                                                                                                                             
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

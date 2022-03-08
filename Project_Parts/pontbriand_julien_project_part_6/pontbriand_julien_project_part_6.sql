@@ -259,46 +259,54 @@ CURSOR consultant_skills_cur(pc_consultant_id consultant.c_id%TYPE) IS
 					WHERE cs.c_id = pc_consultant_id;
 
 skill_record consultant_skills_cur%ROWTYPE;
+ex_wrong_cert_found EXCEPTION;
 
 BEGIN
+
+IF p_certification_IN NOT LIKE 'Y' AND p_certification_IN NOT LIKE 'N' THEN
+RAISE ex_wrong_cert_found;
+END IF;
 
 OPEN consultant_cur;
 
 FETCH consultant_cur INTO consultant_record;
 
 WHILE consultant_cur%FOUND LOOP
-	DBMS_OUTPUT.PUT_LINE('============================================================================================');
-	DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '    FIRST NAME: ' || consultant_record.c_first || '    LAST NAME: ' || consultant_record.c_last || 'EMAIL: ' || consultant_record.c_email);
-	DBMS_OUTPUT.PUT_LINE('============================================================================================');
+	DBMS_OUTPUT.PUT_LINE('======================================================================================================================================');
+	DBMS_OUTPUT.PUT_LINE('CONSULTANT ID: ' || consultant_record.c_id || '     | FIRST NAME: ' || consultant_record.c_first || '     | LAST NAME: ' || consultant_record.c_last || '     | EMAIL: ' || consultant_record.c_email);
+	DBMS_OUTPUT.PUT_LINE('======================================================================================================================================');
 
-	-- OPEN consultant_skills_cur(consultant_record.c_id);
-	-- FETCH consultant_skills_cur INTO skill_record;
-	-- WHILE consultant_skills_cur%FOUND LOOP
-	-- 	IF consultant_record.c_id = p_c_Id_IN THEN
-	-- 		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    Skill Description' || skill_record.skill_description || '    Old Certification Status' || skill_record.certification || '    New Certification status: ' || p_certification_IN);
-	-- 		UPDATE consultant_skill
-	-- 			SET certification = p_certification_IN 
-	-- 				WHERE c_id = consultant_record.c_id AND skill_id = skill_record.skill_id;
-	-- 	ELSE
-	-- 		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    Skill Description' || skill_record.skill_description || '    Certification Status' || skill_record.certification);
+	OPEN consultant_skills_cur(consultant_record.c_id);
+	FETCH consultant_skills_cur INTO skill_record;
+	WHILE consultant_skills_cur%FOUND LOOP
+	IF consultant_record.c_id = p_c_Id_IN THEN
+	
+		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '    | Skill 	Description: ' || skill_record.skill_description || '    | Old 	Certification Status: ' || skill_record.certification || '                    | New Certification status: ' || p_certification_IN);
+
+		UPDATE consultant_skill
+			SET certification = p_certification_IN 
+				WHERE c_id = consultant_record.c_id AND skill_id = skill_record.skill_id;
+
+ 	ELSE
+		DBMS_OUTPUT.PUT_LINE('Skill ID: ' || skill_record.skill_id || '     | Skill Description: ' || skill_record.skill_description || '                | Certification Status: ' || skill_record.certification);
 		
-	-- 	END IF;
-	-- FETCH consultant_skills_cur INTO skill_record;
-	-- END LOOP;
-	-- CLOSE consultant_skills_cur;
+	END IF;
+	FETCH consultant_skills_cur INTO skill_record;
+	IF consultant_skills_cur%NOTFOUND THEN
+		DBMS_OUTPUT.PUT_LINE('.');
+	END IF;
+	END LOOP;
+	CLOSE consultant_skills_cur;
 FETCH consultant_cur INTO consultant_record;
 END LOOP;
 CLOSE consultant_cur;
+EXCEPTION
+WHEN ex_wrong_cert_found THEN
+DBMS_OUTPUT.PUT_LINE('Invalid certification input type. Must be either Y or N.');
 END;
 /
 show error
 
+EXEC cons_skill_updater(100,'Z');
 EXEC cons_skill_updater(100,'Y');
-
-
-
-Under each consultant 
-
-display all his/her skill (skill description) 
-and the OLD and NEW
-status of the skill (certified or not).
+EXEC cons_skill_updater(105,'Y');
