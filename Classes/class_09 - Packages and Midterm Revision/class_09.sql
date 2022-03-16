@@ -124,5 +124,124 @@ CURSOR FOR LOOP
 
 
 -------------------------
-Packages (GLOBAL VARIABLES)
+Packages ( 
+    
+Reason 1 : GLOBAL VARIABLES, 
 
+Reason 2 : To group data
+
+Reason 3 : We want overloading procedures and functions
+
+)
+
+A package has tp have 2 parts.
+
+Part 1 - Package specification
+Part 2 - Package body
+
+Part 1 : Specification.
+
+SYNTAX : CREATE OR REPLACE PACKAGE name_of_pack IS
+declaration of VARIABLES
+declaration of the cursor
+declaration of the procedure of function
+
+END;
+
+EX: (for 2 variables) (bodyless package)
+
+    CREATE OR REPLACE PACKAGE order_package IS
+        global_inv_id NUMBER(6);
+        global_quantity NUMBER(6);
+    END;
+    /
+
+(TO RUN, anonymous block or..)
+
+BEGIN 
+    order_package.global_inv_id := 7;
+    order_package.global_quantity := 2;
+END;
+/
+
+EX: TO DISPLAY THE CONTENT of the global variable of the package order_package
+
+CREATE OR REPLACE PROCEDURE ex1 AS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Inv ID: '|| order_package.global_inv_id || 'Global quantity : ' || order_package.global_quantity);
+END;
+/
+EXEC ex1;
+
+----
+(We can even store procedures in packages!)
+
+Add procedure to the package as SPECIFICATION
+
+CREATE OR REPLACE PACKAGE order_package IS
+
+global_inv_id NUMBER(6);
+global_quantity NUMBER(6);
+
+PROCEDURE create_new_order(current_c_id NUMBER, current_meth_pmt VARCHAR2, cur_os_id NUMBER);
+
+PROCEDURE create_new_order_line(current_o_id NUMBER);
+END;
+/
+
+-----------PACKAGE BODY-------------
+
+SYNTAX :
+
+    CREATE OR REPLACE PACKAGE BODY name_of_package IS
+        private variable declaration
+        UNIT PROGRAM CODE (body of the procedure/function)
+    END;
+    /
+------------------------------------
+CREATE SEQUENCE order_sequence START WITH 7;
+
+
+CREATE OR REPLACE PACKAGE BODY order_package IS
+
+PROCEDURE create_new_order(current_c_id NUMBER, current_meth_pmt VARCHAR2, cur_os_id NUMBER) AS
+
+current_o_id NUMBER;
+
+BEGIN
+    SELECT order_sequence.NEXTVAL 
+        INTO current_o_id 
+            FROM dual;
+INSERT INTO orders VALUES(current_o_id, sysdate, current_meth_pmt, current_c_id, cur_os_id);
+create_new_order_line(current_o_id);
+COMMIT;
+END create_new_order;
+
+
+
+PROCEDURE create_new_order_line(current_o_id NUMBER) AS
+
+BEGIN
+    INSERT INTO order_line
+    VALUES(current_o_id, global_inv_id, global_quantity);
+
+COMMIT;
+END create_new_order_line;
+
+END;
+/
+
+
+
+BEGIN
+order_package.global_inv_id := 32;
+order_package.global_quantity := 5;
+END;
+/
+
+BEGIN
+    order_package.create_new_order(4,'CASH', 5);
+END;
+/
+
+EXEC order_package.create_new_order(4,'CASH', 5);
