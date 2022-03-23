@@ -233,15 +233,4 @@ END;
 
 
 
-BEGIN
-order_package.global_inv_id := 32;
-order_package.global_quantity := 5;
-END;
-/
-
-BEGIN
-    order_package.create_new_order(4,'CASH', 5);
-END;
-/
-
-EXEC order_package.create_new_order(4,'CASH', 5);
+497284

@@ -2,13 +2,17 @@
 
 -- Mode = IN , OUT
 
-CREATE OR REPLACE FUNCTION name_of_function [(parameter_name MODE DATATYPE, ...)] RETURN datatype AS
+CREATE OR REPLACE FUNCTION name_of_function (parameter_name MODE DATATYPE, ...) RETURN datatype AS
 	BEGIN
 		execute statement;
 	RETURN name_of_variable;
 	END;
 	/
-	
+
+CREATE OR REPLACE FUNCTION px (p_in NUMBER) RETURN
+
+
+
 -- PROCEDURE VS 
 
 -- The procedure can return something complex
@@ -31,5 +35,3 @@ To run a function in SQL*Plus do : SELECT name_of_function (value) FROM dual;
 ex :  SELECT f_triple(5) FROM dual;
 
 ex : select ename, sal, f_triple(sal) dreamsalary From emp;
-
-

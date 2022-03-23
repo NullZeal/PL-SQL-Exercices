@@ -15,8 +15,6 @@ SELECT s_id, s_last, s_first, s_dob, s_class
 	FROM student
 		WHERE f_id = pc_f_id;
 
-v_currentId faculty.f_id%TYPE;
-
 BEGIN 
 
 FOR c_index IN fac_cur LOOP
@@ -25,9 +23,7 @@ FOR c_index IN fac_cur LOOP
 						c_index.f_last || ' - Rank : ' || c_index.f_rank);
 	DBMS_OUTPUT.PUT_LINE('====================================================================================================');
 
-    v_currentId := c_index.f_id;
-
-	FOR z_index IN student_cur(v_currentId) LOOP
+	FOR z_index IN student_cur(c_index.f_id) LOOP
 
 		DBMS_OUTPUT.PUT_LINE('|       Student ID: ' || z_index.s_id || ' - First Name: ' || z_index.s_first || ' - Last Name: ' ||
 						z_index.s_last || ' - Birthdate: ' || z_index.s_dob || ' - class: ' || z_index.s_class);

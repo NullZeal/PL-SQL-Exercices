@@ -1,0 +1,243 @@
+SQL> --Q1 A
+SQL> connect des02/des02;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION julien_pontbriand_f1(p_num1_in NUMBER, p_num2_in NUMBER) RETURN NUMBER AS
+  2  
+  3  v_product NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  v_product := p_num1_in * p_num2_in;
+  8  
+  9  RETURN v_product;
+ 10  END;
+ 11  /
+
+Function created.
+
+SQL> 
+SQL> --Q1 B
+SQL> SELECT julien_pontbriand_f1(2,2) FROM DUAL;
+
+JULIEN_PONTBRIAND_F1(2,2)                                                       
+-------------------------                                                       
+                        4                                                       
+
+SQL> 
+SQL> --Q1 C
+SQL> SET SERVEROUTPUT ON;
+SQL> connect des02/des02;
+Connected.
+SQL> CREATE OR REPLACE PROCEDURE julien_pontbriand_p1(p_o_id_in NUMBER, p_inv_id_in NUMBER, p_oq_in NUMBER) AS
+  2  
+  3  v_o_id NUMBER;
+  4  v_inv_id NUMBER;
+  5  v_date DATE;
+  6  
+  7  v_combinaison NUMBER;
+  8  
+  9  v_order_price NUMBER;
+ 10  v_oq NUMBER;
+ 11  
+ 12  
+ 13  v_f_result NUMBER;
+ 14  
+ 15  v_error VARCHAR2(30);
+ 16  
+ 17  BEGIN
+ 18  
+ 19  v_error := 'oid_missing';
+ 20  
+ 21  SELECT o_date
+ 22  INTO v_date
+ 23  FROM orders
+ 24  WHERE o_id = p_o_id_in;
+ 25  
+ 26  SELECT o_id
+ 27  INTO v_o_id
+ 28  FROM orders
+ 29  WHERE p_o_id_in = o_id;
+ 30  
+ 31  SELECT inv_id
+ 32  INTO v_inv_id
+ 33  FROM order_line
+ 34  WHERE p_o_id_in = o_id AND inv_id = p_inv_id_in;
+ 35  
+ 36  v_error := 'invid_missing';
+ 37  
+ 38  SELECT i.inv_id
+ 39  INTO v_combinaison
+ 40  FROM inventory i
+ 41  JOIN order_line ol
+ 42  ON i.inv_id = ol.inv_id
+ 43  WHERE i.inv_id = p_inv_id_in AND ol.o_id = p_o_id_in;
+ 44  
+ 45  SELECT i.inv_price, i.inv_qoh
+ 46  INTO v_order_price, v_oq
+ 47  FROM inventory i
+ 48  JOIN order_line ol
+ 49  ON i.inv_id = ol.inv_id
+ 50  WHERE i.inv_id = p_inv_id_in AND ol.o_id = p_o_id_in;
+ 51  
+ 52  v_f_result := julien_pontbriand_f1(v_order_price, v_oq);
+ 53  
+ 54  DBMS_OUTPUT.PUT_LINE('The date is : ' || v_date);
+ 55  DBMS_OUTPUT.PUT_LINE('The inv id is : ' || p_inv_id_in);
+ 56  DBMS_OUTPUT.PUT_LINE('The order quantity is: ' || v_oq);
+ 57  DBMS_OUTPUT.PUT_LINE('The total of the order is: ' || v_f_result || '$CAD');
+ 58  
+ 59  
+ 60  EXCEPTION
+ 61  
+ 62  WHEN NO_DATA_FOUND THEN
+ 63  IF v_error = 'invid_missing' THEN
+ 64  DBMS_OUTPUT.PUT_LINE('An invalid order ID has been entered my friend!');
+ 65  
+ 66  ELSIF v_error = 'oid_missing' THEN
+ 67  DBMS_OUTPUT.PUT_LINE('An invalid inventory ID has been entered my friend!');
+ 68  END IF;
+ 69  END;
+ 70  /
+
+Procedure created.
+
+SQL> 
+SQL> EXEC julien_pontbriand_p1(1,1,1);
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC julien_pontbriand_p1(1000,1,1);
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> --Q2
+SQL> 
+SQL> connect des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> CREATE OR REPLACE PROCEDURE julien_pontbriand_p2(p_tax_rate NUMBER) AS
+  2  
+  3  CURSOR inventory_cur IS
+  4  SELECT inv_id, inv_price, color, inv_qoh
+  5  FROM inventory;
+  6  
+  7  
+  8  inventory_record inventory_cur%ROWTYPE;
+  9  
+ 10  price_with_tax NUMBER;
+ 11  
+ 12  BEGIN
+ 13  
+ 14  IF p_tax_rate < 0 THEN
+ 15  
+ 16  DBMS_OUTPUT.PUT_LINE('The Tax rate is negative and therefore the procedure cannot work. Try with a positive tax value.');
+ 17  
+ 18  ELSE
+ 19  
+ 20  OPEN inventory_cur;
+ 21  FETCH inventory_cur INTO inventory_record;
+ 22  WHILE inventory_cur%FOUND LOOP
+ 23  DBMS_OUTPUT.PUT_LINE('| Inv Id: ' || inventory_record.inv_id || '   Price: CAD$ ' || inventory_record.inv_price || '   Color: ' ||  inventory_record.color || '  Quantity: ' || inventory_record.inv_qoh
+ 24            ||  '   Country Tax: ' || p_tax_rate || '%  ' || ' value with tax : '
+ 25          || inventory_record.inv_price * (1 + (p_tax_rate /100) * inventory_record.inv_qoh ));
+ 26  FETCH inventory_cur INTO inventory_record;
+ 27  IF inventory_cur%NOTFOUND THEN
+ 28  DBMS_OUTPUT.PUT_LINE('.');
+ 29  END IF;
+ 30  END LOOP;
+ 31  CLOSE inventory_cur;
+ 32  END IF;
+ 33  END;
+ 34  /
+
+Procedure created.
+
+SQL> show error;
+No errors.
+SQL> EXEC julien_pontbriand_p2(-10);
+The Tax rate is negative and therefore the procedure cannot work. Try with a positive tax value.                                                                                                                                                                                                            
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC julien_pontbriand_p2(10);
+| Inv Id: 1   Price: CAD$ 1590.15   Color: Sky Blue  Quantity: 16   Country Tax: 10%   value with tax : 4134.39                                                                                                                                                                                             
+| Inv Id: 2   Price: CAD$ 1590.15   Color: Light Grey  Quantity: 12   Country Tax: 10%   value with tax : 3498.33                                                                                                                                                                                           
+| Inv Id: 3   Price: CAD$ 183.29   Color: Khaki  Quantity: 150   Country Tax: 10%   value with tax : 2932.64                                                                                                                                                                                                
+| Inv Id: 4   Price: CAD$ 183.29   Color: Khaki  Quantity: 147   Country Tax: 10%   value with tax : 2877.653                                                                                                                                                                                               
+| Inv Id: 5   Price: CAD$ 183.29   Color: Khaki  Quantity: 0   Country Tax: 10%   value with tax : 183.29                                                                                                                                                                                                   
+| Inv Id: 6   Price: CAD$ 183.29   Color: Navy  Quantity: 139   Country Tax: 10%   value with tax : 2731.021                                                                                                                                                                                                
+| Inv Id: 7   Price: CAD$ 183.29   Color: Navy  Quantity: 137   Country Tax: 10%   value with tax : 2694.363                                                                                                                                                                                                
+| Inv Id: 8   Price: CAD$ 183.29   Color: Navy  Quantity: 115   Country Tax: 10%   value with tax : 2291.125                                                                                                                                                                                                
+| Inv Id: 9   Price: CAD$ 366.73   Color: Eggplant  Quantity: 135   Country Tax: 10%   value with tax : 5317.585                                                                                                                                                                                            
+| Inv Id: 10   Price: CAD$ 366.73   Color: Eggplant  Quantity: 168   Country Tax: 10%   value with tax : 6527.794                                                                                                                                                                                           
+| Inv Id: 11   Price: CAD$ 366.73   Color: Eggplant  Quantity: 187   Country Tax: 10%   value with tax : 7224.581                                                                                                                                                                                           
+| Inv Id: 12   Price: CAD$ 366.73   Color: Royal  Quantity: 0   Country Tax: 10%   value with tax : 366.73                                                                                                                                                                                                  
+| Inv Id: 13   Price: CAD$ 366.73   Color: Royal  Quantity: 124   Country Tax: 10%   value with tax : 4914.182                                                                                                                                                                                              
+| Inv Id: 14   Price: CAD$ 366.73   Color: Royal  Quantity: 112   Country Tax: 10%   value with tax : 4474.106                                                                                                                                                                                              
+| Inv Id: 15   Price: CAD$ 97.81   Color: Turquoise  Quantity: 121   Country Tax: 10%   value with tax : 1281.311                                                                                                                                                                                           
+| Inv Id: 16   Price: CAD$ 97.81   Color: Turquoise  Quantity: 111   Country Tax: 10%   value with tax : 1183.501                                                                                                                                                                                           
+| Inv Id: 17   Price: CAD$ 97.81   Color: Turquoise  Quantity: 113   Country Tax: 10%   value with tax : 1203.063                                                                                                                                                                                           
+| Inv Id: 18   Price: CAD$ 97.81   Color: Turquoise  Quantity: 121   Country Tax: 10%   value with tax : 1281.311                                                                                                                                                                                           
+| Inv Id: 19   Price: CAD$ 97.81   Color: Bright Pink  Quantity: 148   Country Tax: 10%   value with tax : 1545.398                                                                                                                                                                                         
+| Inv Id: 20   Price: CAD$ 97.81   Color: Bright Pink  Quantity: 137   Country Tax: 10%   value with tax : 1437.807                                                                                                                                                                                         
+| Inv Id: 21   Price: CAD$ 97.81   Color: Bright Pink  Quantity: 134   Country Tax: 10%   value with tax : 1408.464                                                                                                                                                                                         
+| Inv Id: 22   Price: CAD$ 97.81   Color: Bright Pink  Quantity: 123   Country Tax: 10%   value with tax : 1300.873                                                                                                                                                                                         
+| Inv Id: 23   Price: CAD$ 1284.17   Color: Spruce  Quantity: 114   Country Tax: 10%   value with tax : 15923.708                                                                                                                                                                                           
+| Inv Id: 24   Price: CAD$ 1284.17   Color: Spruce  Quantity: 17   Country Tax: 10%   value with tax : 3467.259                                                                                                                                                                                             
+| Inv Id: 25   Price: CAD$ 1284.17   Color: Spruce  Quantity: 0   Country Tax: 10%   value with tax : 1284.17                                                                                                                                                                                               
+| Inv Id: 26   Price: CAD$ 1284.17   Color: Spruce  Quantity: 12   Country Tax: 10%   value with tax : 2825.174                                                                                                                                                                                             
+| Inv Id: 27   Price: CAD$ 97.6   Color: Blue  Quantity: 50   Country Tax: 10%   value with tax : 585.6                                                                                                                                                                                                     
+| Inv Id: 28   Price: CAD$ 97.6   Color: Blue  Quantity: 100   Country Tax: 10%   value with tax : 1073.6                                                                                                                                                                                                   
+| Inv Id: 29   Price: CAD$ 97.6   Color: Blue  Quantity: 100   Country Tax: 10%   value with tax : 1073.6                                                                                                                                                                                                   
+| Inv Id: 30   Price: CAD$ 122.34   Color: White  Quantity: 100   Country Tax: 10%   value with tax : 1345.74                                                                                                                                                                                               
+| Inv Id: 31   Price: CAD$ 122.34   Color: White  Quantity: 100   Country Tax: 10%   value with tax : 1345.74                                                                                                                                                                                               
+| Inv Id: 32   Price: CAD$ 122.34   Color: White  Quantity: 100   Country Tax: 10%   value with tax : 1345.74                                                                                                                                                                                               
+.                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Q3
+SQL> 
+SQL> connect des02/des02;
+Connected.
+SQL> SET SERVEROUTPUT ON
+SQL> SET linesize 300
+SQL> SET pagesize 500
+SQL> CREATE OR REPLACE PROCEDURE julien_pontbriand_p3 AS
+  2  
+  3  --v_date NUMBER;
+  4  
+  5  BEGIN
+  6  FOR cur_index IN (SELECT o_id, o_methpmt, o_date FROM orders) LOOP
+  7      --v_date := (cur_index.o_date - SYSDATE FROM DUAL) ;
+  8      DBMS_OUTPUT.PUT_LINE('OrderID : ' || cur_index.o_id || ' Method of payment ' || cur_index.o_methpmt || ' date : ' || cur_index.o_date || 'days between order date');
+  9      END LOOP;
+ 10  END;
+ 11  /
+
+Procedure created.
+
+SQL> EXEC julien_pontbriand_p3;
+OrderID : 1 Method of payment CC date : 06-05-29days between order date                                                                                                                                                                                                                                     
+OrderID : 2 Method of payment CC date : 06-05-29days between order date                                                                                                                                                                                                                                     
+OrderID : 3 Method of payment CHECK date : 06-05-31days between order date                                                                                                                                                                                                                                  
+OrderID : 4 Method of payment CC date : 06-05-31days between order date                                                                                                                                                                                                                                     
+OrderID : 5 Method of payment CC date : 06-06-01days between order date                                                                                                                                                                                                                                     
+OrderID : 6 Method of payment CC date : 06-06-01days between order date                                                                                                                                                                                                                                     
+OrderID : 7 Method of payment CASH date : 22-03-14days between order date                                                                                                                                                                                                                                   
+OrderID : 8 Method of payment CASH date : 22-03-14days between order date                                                                                                                                                                                                                                   
+OrderID : 9 Method of payment CASH date : 22-03-14days between order date                                                                                                                                                                                                                                   
+OrderID : 10 Method of payment CASH date : 22-03-14days between order date                                                                                                                                                                                                                                  
+OrderID : 11 Method of payment CASH date : 22-03-14days between order date                                                                                                                                                                                                                                  
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --
+SQL> SPOOL OFF

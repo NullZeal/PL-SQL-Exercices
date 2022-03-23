@@ -16,7 +16,7 @@
 -- DROP USER neetu CASCADE;
 -- START c:\db2\
 
-Example 1 : Create a fuction that accepts a number to return 5 times the value inserted
+Example 1 : Create a function that accepts a number to return 5 times the value inserted
 
 
 SET SERVEROUTPUT ON
@@ -118,10 +118,3 @@ END;
 /
 
 exec find_grade(100)
-
-
-
-
-
-
-	

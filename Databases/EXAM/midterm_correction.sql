@@ -1,0 +1,5 @@
+SOLUTION Simulation Part 2
+
+CREATE OR REPLACE FUNCTION nguyen_g1(P1)
+
+EXCEPTION NO DATA FOUND works only for PRIMARY KEY

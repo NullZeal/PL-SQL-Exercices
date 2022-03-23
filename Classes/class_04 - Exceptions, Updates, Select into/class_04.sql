@@ -91,9 +91,9 @@ exec up_or_in_emp(16, 'aaaasd2d2ddaaa', 1000);
 
 
 Q3
-SELECT to_date('12-12-2000','DD-MM-YYYY') - SYSDATE FROM dual;
-date - date = n days / 365 = years
-display only INTEGER
+--SELECT to_date('12-12-2000','DD-MM-YYYY') - SYSDATE FROM dual;
+--date - date = n days / 365 = years
+--display only INTEGER
 
 Q4
 
