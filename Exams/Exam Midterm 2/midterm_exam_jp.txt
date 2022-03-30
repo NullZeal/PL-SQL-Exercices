@@ -1,0 +1,313 @@
+SQL> ----------------- Q1 A
+SQL> 
+SQL> connect des03/des03;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE FUNCTION pontbriand_f1 (p_bday DATE) RETURN NUMBER AS
+  2  v_age NUMBER;
+  3  BEGIN
+  4  v_age := FLOOR((sysdate - p_bday)/365.25);
+  5  RETURN v_age;
+  6  END;
+  7  /
+
+Function created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> ----------------- Q1 B
+SQL> 
+SQL> SELECT pontbriand_f1 ('1992-04-6') FROM dual;
+
+PONTBRIAND_F1('1992-04-6')                                                      
+--------------------------                                                      
+                        29                                                      
+
+SQL> 
+SQL> ----------------- Q1 C
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE pontbriand_p1 (p_s_id NUMBER, p_c_sec_id NUMBER, p_grade CHAR) AS
+  2  
+  3  v_f_id NUMBER;
+  4  v_last VARCHAR(20);
+  5  v_first VARCHAR(20);
+  6  v_bday DATE;
+  7  v_age NUMBER;
+  8  v_grade CHAR(1);
+  9  
+ 10  v_flag NUMBER := 0;
+ 11  
+ 12  BEGIN
+ 13  
+ 14  SELECT s_last, s_first, s_dob
+ 15  INTO v_last, v_first, v_bday
+ 16  FROM student
+ 17  WHERE p_s_id = s_id;
+ 18  
+ 19  v_flag := 1;
+ 20  
+ 21  SELECT f_id
+ 22  INTO v_f_id
+ 23  FROM course_section
+ 24  WHERE p_c_sec_id = c_sec_id;
+ 25  
+ 26  v_flag := 2;
+ 27  
+ 28  SELECT grade
+ 29  INTO v_grade
+ 30  FROM ENROLLMENT
+ 31  WHERE s_id = p_s_id AND c_sec_id = p_c_sec_id;
+ 32  
+ 33  IF v_grade = p_grade THEN
+ 34  DBMS_OUTPUT.PUT_LINE('No need to update my friend abdul!');
+ 35  ELSE
+ 36  
+ 37      v_age := pontbriand_f1(v_bday);
+ 38  
+ 39      UPDATE ENROLLMENT SET grade = p_grade;
+ 40  
+ 41      DBMS_OUTPUT.PUT_LINE('FULL NAME: ' || v_first || ' ' || v_last);
+ 42      DBMS_OUTPUT.PUT_LINE('Birthdate: ' || v_bday);
+ 43      DBMS_OUTPUT.PUT_LINE('Age: ' || v_age);
+ 44  
+ 45  END IF;
+ 46  
+ 47  COMMIT;
+ 48  
+ 49  EXCEPTION
+ 50  WHEN NO_DATA_FOUND THEN
+ 51  IF v_flag = 0 THEN
+ 52  DBMS_OUTPUT.PUT_LINE('Student id : ' || p_s_id || ' does not exist my friend abdul!');
+ 53  ELSIF v_flag = 1 THEN
+ 54  DBMS_OUTPUT.PUT_LINE('Course_section id : ' || p_c_sec_id || ' does not exist my friend abdul!');
+ 55  ELSIF v_flag = 2 THEN
+ 56  DBMS_OUTPUT.PUT_LINE('Combination of the student id : ' || p_s_id || ' and of the course_section id : ' || p_c_sec_id || ' does not exist my friend abdul!');
+ 57  END IF;
+ 58  END;
+ 59  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> ----------------- Q1 D
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> -- The command below will show this : Student id : 999 does not exist my friend abdul!
+SQL> EXEC pontbriand_p1(999,1,'a');
+Student id : 999 does not exist my friend abdul!                                
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> ----------------- Q2
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE pontbriand_p2 AS
+  2  
+  3  BEGIN
+  4  
+  5  FOR i IN (SELECT f_id, f_last, f_first, f_rank FROM faculty) LOOP
+  6  
+  7      DBMS_OUTPUT.PUT_LINE(' F_id : ' || i.f_id);
+  8      DBMS_OUTPUT.PUT_LINE(' F_last : ' || i.f_last);
+  9      DBMS_OUTPUT.PUT_LINE(' F_rank : ' || i.f_rank);
+ 10      DBMS_OUTPUT.PUT_LINE('|');
+ 11  
+ 12  
+ 13         FOR j IN (   SELECT cs.c_sec_id, l.bldg_code, l.room, c.course_name
+ 14                      FROM course_section cs
+ 15                      JOIN LOCATION l
+ 16                      ON cs.loc_id = l.loc_id
+ 17                      JOIN course c
+ 18                      ON c.course_id = cs.course_id
+ 19                      WHERE cs.f_id = i.f_id
+ 20  
+ 21                  ) LOOP
+ 22  
+ 23                          DBMS_OUTPUT.PUT_LINE('|     C_SEC_ID: ' || j.c_sec_id);
+ 24                          DBMS_OUTPUT.PUT_LINE('|     Course name: ' || j.course_name);
+ 25                          DBMS_OUTPUT.PUT_LINE('|     Bldg Code: ' || j.bldg_code);
+ 26                          DBMS_OUTPUT.PUT_LINE('|     Room: ' || j.room);
+ 27                          DBMS_OUTPUT.PUT_LINE('|');
+ 28  
+ 29  
+ 30                      END LOOP;
+ 31      DBMS_OUTPUT.PUT_LINE('--------------------------');
+ 32      END LOOP;
+ 33      END;
+ 34      /
+
+Procedure created.
+
+SQL>     show error
+No errors.
+SQL>     SET SERVEROUTPUT ON
+SQL>     EXEC pontbriand_p2;
+F_id : 1                                                                        
+F_last : Cox                                                                    
+F_rank : ASSO                                                                   
+|                                                                               
+|     C_SEC_ID: 11                                                              
+|     Course name: Intro. to Info. Systems                                      
+|     Bldg Code: CR                                                             
+|     Room: 101                                                                 
+|                                                                               
+|     C_SEC_ID: 6                                                               
+|     Course name: Database Management                                          
+|     Bldg Code: BUS                                                            
+|     Room: 105                                                                 
+|                                                                               
+|     C_SEC_ID: 7                                                               
+|     Course name: Database Management                                          
+|     Bldg Code: BUS                                                            
+|     Room: 105                                                                 
+|                                                                               
+--------------------------                                                      
+F_id : 2                                                                        
+F_last : Blanchard                                                              
+F_rank : FULL                                                                   
+|                                                                               
+|     C_SEC_ID: 1                                                               
+|     Course name: Intro. to Info. Systems                                      
+|     Bldg Code: CR                                                             
+|     Room: 101                                                                 
+|                                                                               
+|     C_SEC_ID: 9                                                               
+|     Course name: Web-Based Systems                                            
+|     Bldg Code: BUS                                                            
+|     Room: 105                                                                 
+|                                                                               
+|     C_SEC_ID: 10                                                              
+|     Course name: Web-Based Systems                                            
+|     Bldg Code: BUS                                                            
+|     Room: 105                                                                 
+|                                                                               
+|     C_SEC_ID: 12                                                              
+|     Course name: Systems Analysis                                             
+|     Bldg Code: BUS                                                            
+|     Room: 404                                                                 
+|                                                                               
+--------------------------                                                      
+F_id : 3                                                                        
+F_last : Williams                                                               
+F_rank : ASST                                                                   
+|                                                                               
+|     C_SEC_ID: 3                                                               
+|     Course name: Intro. to Info. Systems                                      
+|     Bldg Code: CR                                                             
+|     Room: 202                                                                 
+|                                                                               
+|     C_SEC_ID: 13                                                              
+|     Course name: Database Management                                          
+|     Bldg Code: BUS                                                            
+|     Room: 105                                                                 
+|                                                                               
+|     C_SEC_ID: 2                                                               
+|     Course name: Intro. to Info. Systems                                      
+|     Bldg Code: BUS                                                            
+|     Room: 421                                                                 
+|                                                                               
+--------------------------                                                      
+F_id : 4                                                                        
+F_last : Sheng                                                                  
+F_rank : INST                                                                   
+|                                                                               
+|     C_SEC_ID: 4                                                               
+|     Course name: Systems Analysis                                             
+|     Bldg Code: BUS                                                            
+|     Room: 404                                                                 
+|                                                                               
+|     C_SEC_ID: 5                                                               
+|     Course name: Systems Analysis                                             
+|     Bldg Code: BUS                                                            
+|     Room: 404                                                                 
+|                                                                               
+--------------------------                                                      
+F_id : 5                                                                        
+F_last : Brown                                                                  
+F_rank : ASSO                                                                   
+|                                                                               
+|     C_SEC_ID: 8                                                               
+|     Course name: Programming in C++                                           
+|     Bldg Code: CR                                                             
+|     Room: 103                                                                 
+|                                                                               
+--------------------------                                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> ----------------- Q3
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE pontbriand_p3 AS
+  2  
+  3  v_age NUMBER;
+  4  
+  5  BEGIN
+  6  
+  7  
+  8  FOR i IN (SELECT s_id, s_last, s_first, s_dob FROM student) LOOP
+  9  
+ 10  v_age := pontbriand_f1(i.s_dob);
+ 11  
+ 12  DBMS_OUTPUT.PUT_LINE('Student ID: ' || i.s_id);
+ 13  DBMS_OUTPUT.PUT_LINE('Student Last Name: ' || i.s_last);
+ 14  DBMS_OUTPUT.PUT_LINE('Student First Name: ' || i.s_first);
+ 15  DBMS_OUTPUT.PUT_LINE('Student Date of birth: ' || i.s_dob);
+ 16  DBMS_OUTPUT.PUT_LINE('Age: ' || v_age);
+ 17  DBMS_OUTPUT.PUT_LINE('|');
+ 18  END LOOP;
+ 19  END;
+ 20  /
+
+Procedure created.
+
+SQL> show error
+No errors.
+SQL> SET SERVEROUTPUT ON
+SQL> EXEC pontbriand_p3;
+Student ID: 1                                                                   
+Student Last Name: Miller                                                       
+Student First Name: Sarah                                                       
+Student Date of birth: 85-07-14                                                 
+Age: 36                                                                         
+|                                                                               
+Student ID: 2                                                                   
+Student Last Name: Umato                                                        
+Student First Name: Brian                                                       
+Student Date of birth: 85-08-19                                                 
+Age: 36                                                                         
+|                                                                               
+Student ID: 3                                                                   
+Student Last Name: Black                                                        
+Student First Name: Daniel                                                      
+Student Date of birth: 82-10-10                                                 
+Age: 39                                                                         
+|                                                                               
+Student ID: 4                                                                   
+Student Last Name: Mobley                                                       
+Student First Name: Amanda                                                      
+Student Date of birth: 86-09-24                                                 
+Age: 35                                                                         
+|                                                                               
+Student ID: 5                                                                   
+Student Last Name: Sanchez                                                      
+Student First Name: Ruben                                                       
+Student Date of birth: 86-11-20                                                 
+Age: 35                                                                         
+|                                                                               
+Student ID: 6                                                                   
+Student Last Name: Connoly                                                      
+Student First Name: Michael                                                     
+Student Date of birth: 86-12-04                                                 
+Age: 35                                                                         
+|                                                                               
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF
