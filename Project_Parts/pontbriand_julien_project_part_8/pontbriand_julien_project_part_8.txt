@@ -1,0 +1,283 @@
+SQL> --------QUESTION 1
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE order_package IS
+  2    global_inv_id NUMBER(6);
+  3    global_quantity NUMBER(6);
+  4  
+  5    PROCEDURE create_new_order (
+  6      current_c_id NUMBER,
+  7      current_meth_pmt VARCHAR2,
+  8      current_os_id NUMBER);
+  9  
+ 10    PROCEDURE create_new_order_line(current_o_id NUMBER);
+ 11  
+ 12    FUNCTION isQohEnough(p_inv_id NUMBER) RETURN BOOLEAN;
+ 13  
+ 14    FUNCTION getPackageGlobalInvId RETURN NUMBER;
+ 15  
+ 16  END;
+ 17  /
+
+Package created.
+
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE BODY order_package IS
+  2  
+  3    FUNCTION getPackageGlobalInvId RETURN NUMBER AS
+  4    BEGIN
+  5      RETURN global_inv_id;
+  6    END getPackageGlobalInvId;
+  7  
+  8    FUNCTION isQohEnough(p_inv_id NUMBER) RETURN BOOLEAN AS
+  9      v_inv_qoh NUMBER;
+ 10      BEGIN
+ 11  
+ 12      SELECT inv_qoh
+ 13      INTO v_inv_qoh
+ 14      FROM inventory
+ 15      WHERE p_inv_id = inv_id;
+ 16      IF v_inv_qoh >= order_package.global_quantity THEN
+ 17        RETURN TRUE;
+ 18      ELSE
+ 19        RETURN FALSE;
+ 20      END IF;
+ 21    END isQohEnough;
+ 22  
+ 23    PROCEDURE create_new_order_line(current_o_id NUMBER) AS
+ 24      BEGIN
+ 25      INSERT INTO order_line
+ 26      VALUES(current_o_id, global_inv_id, global_quantity);
+ 27      COMMIT;
+ 28    END create_new_order_line;
+ 29  
+ 30    PROCEDURE create_new_order(current_c_id NUMBER, current_meth_pmt VARCHAR2, current_os_id NUMBER) AS
+ 31  
+ 32      current_o_id NUMBER;
+ 33  
+ 34      BEGIN
+ 35  
+ 36      SELECT MAX(o_id + 1) INTO current_o_id FROM ORDERS;
+ 37  
+ 38      INSERT INTO orders
+ 39        VALUES (current_o_id,
+ 40                sysdate,
+ 41                current_meth_pmt,
+ 42                current_c_id,
+ 43                current_os_id);
+ 44      COMMIT;
+ 45  
+ 46      IF isQohEnough(global_inv_id) THEN
+ 47        create_new_order_line(current_o_id);
+ 48        UPDATE inventory
+ 49        SET inv_qoh = inv_qoh - global_quantity
+ 50        WHERE inv_id = global_inv_id;
+ 51        COMMIT;
+ 52        DBMS_OUTPUT.PUT_LINE('Success! Order-line added my friend Abdul!');
+ 53      ELSE
+ 54        DBMS_OUTPUT.PUT_LINE('Error. Cannot insert a new order-line because there is less quantity of the specified inventory item than requested amount!');
+ 55      END IF;
+ 56      EXCEPTION
+ 57      WHEN NO_DATA_FOUND THEN
+ 58      DBMS_OUTPUT.PUT_LINE('Error! The inventory ID selected does not exist in the database, my friend Santa Claus!');
+ 59    END create_new_order;
+ 60  END;
+ 61  /
+
+Package body created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> BEGIN
+  2    order_package.global_inv_id := 1;
+  3    order_package.global_quantity := 12;
+  4  END;
+  5  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TESTER--
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> SELECT * FROM inventory WHERE order_package.getPackageGlobalInvId = inv_id;
+
+    INV_ID    ITEM_ID COLOR                INV_SIZE    INV_PRICE    INV_QOH     
+---------- ---------- -------------------- ---------- ---------- ----------     
+         1          2 Sky Blue                            259.99         16     
+
+SQL> SELECT * FROM order_line WHERE order_package.getPackageGlobalInvId = inv_id;
+
+      O_ID     INV_ID OL_QUANTITY                                               
+---------- ---------- -----------                                               
+         1          1           1                                               
+
+SQL> BEGIN
+  2    order_package.create_new_order(4,'CASH',5);
+  3   END;
+  4  /
+Success! Order-line added my friend Abdul!                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM inventory WHERE order_package.getPackageGlobalInvId = inv_id;
+
+    INV_ID    ITEM_ID COLOR                INV_SIZE    INV_PRICE    INV_QOH     
+---------- ---------- -------------------- ---------- ---------- ----------     
+         1          2 Sky Blue                            259.99          4     
+
+SQL> SELECT * FROM order_line WHERE order_package.getPackageGlobalInvId = inv_id;
+
+      O_ID     INV_ID OL_QUANTITY                                               
+---------- ---------- -----------                                               
+         1          1           1                                               
+         7          1          12                                               
+
+SQL> BEGIN
+  2    order_package.create_new_order(4,'CASH',5);
+  3   END;
+  4  /
+Error. Cannot insert a new order-line because there is less quantity of the     
+specified inventory item than requested amount!                                 
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM inventory WHERE order_package.getPackageGlobalInvId = inv_id;
+
+    INV_ID    ITEM_ID COLOR                INV_SIZE    INV_PRICE    INV_QOH     
+---------- ---------- -------------------- ---------- ---------- ----------     
+         1          2 Sky Blue                            259.99          4     
+
+SQL> SELECT * FROM order_line WHERE order_package.getPackageGlobalInvId = inv_id;
+
+      O_ID     INV_ID OL_QUANTITY                                               
+---------- ---------- -----------                                               
+         1          1           1                                               
+         7          1          12                                               
+
+SQL> BEGIN
+  2    order_package.global_inv_id := 999;
+  3    order_package.global_quantity := 12;
+  4    order_package.create_new_order(4,'BITCOIN',5);
+  5  END;
+  6  /
+Error! The inventory ID selected does not exist in the database, my friend Santa
+Claus!                                                                          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> ------------QUESTION 2
+SQL> 
+SQL> connect des04/des04;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE softwarePackage IS
+  2    PROCEDURE p1 (p_c_id NUMBER, p_skill_id NUMBER, p_status CHAR);
+  3  END;
+  4  /
+
+Package created.
+
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE BODY softwarePackage IS
+  2  
+  3    PROCEDURE p1 (p_c_id NUMBER, p_skill_id NUMBER, p_status CHAR) AS
+  4  
+  5      e_bad_status EXCEPTION;
+  6      e_match_exists EXCEPTION;
+  7      pragma exception_init(e_match_exists,-1);
+  8  
+  9      v_flag NUMBER := 0;
+ 10  
+ 11      v_c_last consultant.c_last%TYPE;
+ 12      v_c_first consultant.c_first%TYPE;
+ 13      v_skill_description skill.skill_description%TYPE;
+ 14      v_certification consultant_skill.certification%TYPE;
+ 15  
+ 16      BEGIN
+ 17      IF p_status <> 'Y' AND p_status <> 'N' THEN
+ 18        RAISE e_bad_status;
+ 19      END IF;
+ 20  
+ 21      SELECT c_last, c_first INTO v_c_last, v_c_first FROM consultant WHERE c_id = p_c_id;
+ 22  
+ 23      v_flag := 1;
+ 24  
+ 25      SELECT skill_description INTO v_skill_description FROM skill WHERE skill_id = p_skill_id;
+ 26  
+ 27      INSERT INTO consultant_skill VALUES(p_c_id, p_skill_id, p_status);
+ 28      COMMIT;
+ 29  
+ 30      DBMS_OUTPUT.PUT_LINE('|');
+ 31      DBMS_OUTPUT.PUT_LINE('INSERT COMPLETE!');
+ 32      DBMS_OUTPUT.PUT_LINE('|');
+ 33  
+ 34      SELECT certification INTO v_certification FROM consultant_skill WHERE p_c_id = c_id AND skill_id = p_skill_id;
+ 35  
+ 36      DBMS_OUTPUT.PUT_LINE('Last Name:' || v_c_last);
+ 37      DBMS_OUTPUT.PUT_LINE('First Name:' || v_c_first);
+ 38      DBMS_OUTPUT.PUT_LINE('Skill Description:' || v_skill_description);
+ 39      DBMS_OUTPUT.PUT_LINE('Certification Status:' || v_certification);
+ 40      DBMS_OUTPUT.PUT_LINE('|');
+ 41  
+ 42      EXCEPTION
+ 43      WHEN e_bad_status THEN
+ 44        DBMS_OUTPUT.PUT_LINE('Error. Certification status input must be either Y or N. Check your input again please!');
+ 45      WHEN e_match_exists THEN
+ 46        DBMS_OUTPUT.PUT_LINE('Error. Consultant ID and Skill ID match already exist in the DB my friend Obama!');
+ 47      WHEN NO_DATA_FOUND THEN
+ 48      IF v_flag = 0 THEN
+ 49        DBMS_OUTPUT.PUT_LINE('Error. Consultant ID does not exist in the DB my friend Lota!');
+ 50      ELSIF v_flag = 1 THEN
+ 51        DBMS_OUTPUT.PUT_LINE('Error. Skill ID does not exist in the DB my friend Javier!');
+ 52      END IF;
+ 53      END p1;
+ 54  END;
+ 55  /
+
+Package body created.
+
+SQL> show error
+No errors.
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> BEGIN
+  2  softwarePackage.p1(9999,2,'N');
+  3  softwarePackage.p1(100,999999,'N');
+  4  softwarePackage.p1(100,1,'Z');
+  5  softwarePackage.p1(100,9,'N');
+  6  softwarePackage.p1(100,2,'N');
+  7  softwarePackage.p1(100,2,'N');
+  8  END;
+  9  /
+Error. Consultant ID does not exist in the DB my friend Lota!                   
+Error. Skill ID does not exist in the DB my friend Javier!                      
+Error. Certification status input must be either Y or N. Check your input again 
+please!                                                                         
+|                                                                               
+INSERT COMPLETE!                                                                
+|                                                                               
+Last Name:Myers                                                                 
+First Name:Mark                                                                 
+Skill Description:Windows XP Network Administration                             
+Certification Status:N                                                          
+|                                                                               
+|                                                                               
+INSERT COMPLETE!                                                                
+|                                                                               
+Last Name:Myers                                                                 
+First Name:Mark                                                                 
+Skill Description:COBOL Programming                                             
+Certification Status:N                                                          
+|                                                                               
+Error. Consultant ID and Skill ID match already exist in the DB my friend Obama!
+
+PL/SQL procedure successfully completed.
+
+SQL> SPOOL OFF
