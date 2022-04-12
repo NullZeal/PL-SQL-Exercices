@@ -1,0 +1,217 @@
+SQL> ------------Q1
+SQL> 
+SQL> connect des02/des02;
+Connected.
+SQL> 
+SQL> CREATE SEQUENCE customer_audit_sequence;
+
+Sequence created.
+
+SQL> 
+SQL> CREATE TABLE customer_audit(customer_audit_id NUMBER, customer_audit_audit_date DATE, customer_audi_user_audited VARCHAR2(20));
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER customer_audit_trigger
+  2  AFTER INSERT OR UPDATE OR DELETE
+  3  ON customer
+  4  
+  5  BEGIN
+  6      INSERT INTO customer_audit(customer_audit_id, customer_audit_audit_date, customer_audi_user_audited)
+  7      VALUES(customer_audit_sequence.NEXTVAL, sysdate, user);
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> 
+SQL> --TEST 1
+SQL> SELECT * FROM customer_audit;
+
+no rows selected
+
+SQL> UPDATE customer SET c_last = 'test1' WHERE c_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM customer_audit;
+
+CUSTOMER_AUDIT_ID CUSTOMER CUSTOMER_AUDI_USER_A                                                                                                                                                         
+----------------- -------- --------------------                                                                                                                                                         
+                1 22-04-12 DES02                                                                                                                                                                        
+
+SQL> 
+SQL> --TEST 2
+SQL> INSERT INTO customer(c_id, c_last) VALUES(999, 'Obama');
+
+1 row created.
+
+SQL> SELECT * FROM customer_audit;
+
+CUSTOMER_AUDIT_ID CUSTOMER CUSTOMER_AUDI_USER_A                                                                                                                                                         
+----------------- -------- --------------------                                                                                                                                                         
+                1 22-04-12 DES02                                                                                                                                                                        
+                2 22-04-12 DES02                                                                                                                                                                        
+
+SQL> 
+SQL> --TEST 3
+SQL> DELETE FROM customer WHERE c_id = 999;
+
+1 row deleted.
+
+SQL> SELECT * FROM customer_audit;
+
+CUSTOMER_AUDIT_ID CUSTOMER CUSTOMER_AUDI_USER_A                                                                                                                                                         
+----------------- -------- --------------------                                                                                                                                                         
+                1 22-04-12 DES02                                                                                                                                                                        
+                2 22-04-12 DES02                                                                                                                                                                        
+                3 22-04-12 DES02                                                                                                                                                                        
+
+SQL> 
+SQL> -----------Q2
+SQL> 
+SQL> CREATE SEQUENCE order_line_audit_sequence;
+
+Sequence created.
+
+SQL> 
+SQL> CREATE TABLE order_line_audit(ola_id NUMBER, ola_user VARCHAR(20), ola_audit_date DATE, ola_action_type VARCHAR2(30));
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER order_line_audit_trigger
+  2  AFTER INSERT OR UPDATE OR DELETE
+  3  ON order_line
+  4  
+  5  BEGIN
+  6    IF INSERTING THEN
+  7      INSERT INTO order_line_audit
+  8      VALUES(order_line_audit_sequence.NEXTVAL, user, sysdate, 'INSERT');
+  9    ELSIF UPDATING THEN
+ 10      INSERT INTO order_line_audit
+ 11      VALUES(order_line_audit_sequence.NEXTVAL, user, sysdate, 'UPDATE');
+ 12    ELSIF DELETING THEN
+ 13      INSERT INTO order_line_audit
+ 14      VALUES(order_line_audit_sequence.NEXTVAL, user, sysdate, 'DELETE');
+ 15    END IF;
+ 16  END;
+ 17  /
+
+Trigger created.
+
+SQL> 
+SQL> --TEST 1
+SQL> SELECT * FROM order_line_audit;
+
+no rows selected
+
+SQL> UPDATE order_line SET ol_quantity = 1000 WHERE inv_id = 1 AND o_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM order_line_audit;
+
+    OLA_ID OLA_USER             OLA_AUDI OLA_ACTION_TYPE                                                                                                                                                
+---------- -------------------- -------- ------------------------------                                                                                                                                 
+         1 DES02                22-04-12 UPDATE                                                                                                                                                         
+
+SQL> 
+SQL> --TEST 2
+SQL> INSERT INTO order_line(inv_id, o_id, ol_quantity) VALUES(1, 2, 2000);
+
+1 row created.
+
+SQL> SELECT * FROM order_line_audit;
+
+    OLA_ID OLA_USER             OLA_AUDI OLA_ACTION_TYPE                                                                                                                                                
+---------- -------------------- -------- ------------------------------                                                                                                                                 
+         1 DES02                22-04-12 UPDATE                                                                                                                                                         
+         2 DES02                22-04-12 INSERT                                                                                                                                                         
+
+SQL> 
+SQL> --TEST 3
+SQL> DELETE FROM order_line WHERE inv_id = 1 AND o_id = 2;
+
+1 row deleted.
+
+SQL> SELECT * FROM order_line_audit;
+
+    OLA_ID OLA_USER             OLA_AUDI OLA_ACTION_TYPE                                                                                                                                                
+---------- -------------------- -------- ------------------------------                                                                                                                                 
+         1 DES02                22-04-12 UPDATE                                                                                                                                                         
+         2 DES02                22-04-12 INSERT                                                                                                                                                         
+         3 DES02                22-04-12 DELETE                                                                                                                                                         
+
+SQL> 
+SQL> 
+SQL> --------Q3
+SQL> 
+SQL> CREATE SEQUENCE order_line_row_audit_sequence2;
+
+Sequence created.
+
+SQL> 
+SQL> CREATE TABLE order_line_row_audit(olra_id NUMBER, olra_audit_date DATE, olra_old_quantity NUMBER);
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER order_line_row_audit_trigger
+  2  AFTER UPDATE
+  3  ON order_line
+  4  FOR EACH ROW
+  5  
+  6  BEGIN
+  7      INSERT INTO order_line_row_audit(olra_id, olra_audit_date, olra_old_quantity)
+  8      VALUES (order_line_row_audit_sequence2.NEXTVAL, sysdate, :OLD.ol_quantity);
+  9  END;
+ 10  /
+
+Trigger created.
+
+SQL> 
+SQL> --TEST 1
+SQL> SELECT * FROM order_line_row_audit;
+
+no rows selected
+
+SQL> UPDATE order_line SET ol_quantity = 1000 WHERE inv_id = 1 AND o_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM order_line_row_audit;
+
+   OLRA_ID OLRA_AUD OLRA_OLD_QUANTITY                                                                                                                                                                   
+---------- -------- -----------------                                                                                                                                                                   
+         1 22-04-12              1000                                                                                                                                                                   
+
+SQL> 
+SQL> --TEST 2
+SQL> UPDATE order_line SET ol_quantity = 2000 WHERE inv_id = 1 AND o_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM order_line_row_audit;
+
+   OLRA_ID OLRA_AUD OLRA_OLD_QUANTITY                                                                                                                                                                   
+---------- -------- -----------------                                                                                                                                                                   
+         1 22-04-12              1000                                                                                                                                                                   
+         2 22-04-12              1000                                                                                                                                                                   
+
+SQL> 
+SQL> --TEST 3
+SQL> UPDATE order_line SET ol_quantity = 3000 WHERE inv_id = 1 AND o_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM order_line_row_audit;
+
+   OLRA_ID OLRA_AUD OLRA_OLD_QUANTITY                                                                                                                                                                   
+---------- -------- -----------------                                                                                                                                                                   
+         1 22-04-12              1000                                                                                                                                                                   
+         2 22-04-12              1000                                                                                                                                                                   
+         3 22-04-12              2000                                                                                                                                                                   
+
+SQL> SPOOL OFF
