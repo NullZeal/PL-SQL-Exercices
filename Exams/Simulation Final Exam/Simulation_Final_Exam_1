@@ -1,0 +1,203 @@
+Question 2: (script 7clearwater)
+
+
+connect des02/des02;
+
+CREATE OR REPLACE FUNCTION pontbriand_find_value(
+            p_inv_id NUMBER, 
+            p_inv_price NUMBER,
+            p_qoh NUMBER) RETURN NUMBER AS
+
+BEGIN
+
+RETURN p_inv_price * p_inv_qoh;
+
+END;
+/
+
+SELECT f_nguyen(1,2,3) FROM dual;
+
+CREATE OR REPLACE PROCEDURE pontbriand_p1(
+    p_inv_id NUMBER,
+    p_inv_price NUMBER,
+    p_inv_size NUMBER,
+    p_inv_color inventory.color%TYPE,
+    p_inv_qoh inventory.inv_size%TYPE) AS
+
+v_inv_price NUMBER;
+v_inv_qoh NUMBER;
+v_inv_size VARCHAR2(20);
+v_inv_color VARCHAR2(30);
+
+BEGIN
+
+SELECT inv_price, inv_qoh, inv_size, inv_color INTO v_inv_price, v_inv_qoh, v_inv_size, v_inv_color
+    FROM inventory WHERE inv_id = p_inv_id;
+
+DBMS_OUTPUT.PUT_LINE('UPDATED');
+COMMIT;
+
+EXCEPTION WHEN NO_DATA_FOUND THEN
+
+DBMS_OUTPUT.PUT_LINE('INSERTED');
+        IF p_inv_qoh < 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Cannot be negative qoh');
+        ELSE
+
+        INSERT INTO inventory(inv_id, inv_price, inv_size, color, inv_qoh)
+        VALUES (p_inv_id, p_inv_price, p_inv_size, p_inv_color, p_inv_qoh);
+
+        END IF;
+        COMMIT;
+
+SET SERVEROUTPUT ON
+EXEC pontbriand_q1(1,1,1,'Blue', 'Medium');
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+
+
+DBMS_OUTPUT.PUT_LINE('The value of inventory number ' || p_inv_id ||
+ ' is ' || pontbriand_find_value(p_inv_id, v_inv_price, v_inv_qoh) || 'dollar');
+
+EXCEPTION
+
+WHEN ex_invalid_qoh THEN
+DBMS_OUTPUT.PUT_LINE('Negative QOH!');
+
+END;
+/
+
+
+
+
+
+
+
+------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE pontbriand_q2 AS
+
+BEGIN
+
+FOR i IN (SELECT item_id, item_desc, cat_id FROM item) LOOP
+    DBMS_OUTPUT.PUT_LINE('|------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('Item ID:' || i.item_id);
+    DBMS_OUTPUT.PUT_LINE('Item Desc:' || i.item_desc);
+    DBMS_OUTPUT.PUT_LINE('CAT ID:' || i.cat_id);
+    DBMS_OUTPUT.PUT_LINE('|');
+
+    FOR j IN (SELECT item_id, inv_id, inv_price, inv_size, inv_qoh 
+                    FROM inventory WHERE item_id = i.item_id) LOOP
+                DBMS_OUTPUT.PUT_LINE('|-----------------');
+                DBMS_OUTPUT.PUT_LINE('Inv ID: ' || j.inv_id);
+                DBMS_OUTPUT.PUT_LINE('Inv Price: ' || j.inv_price);
+                DBMS_OUTPUT.PUT_LINE('Inv Size: ' || j.inv_size);
+                DBMS_OUTPUT.PUT_LINE('Inv qoh: ' || j.inv_qoh);
+                DBMS_OUTPUT.PUT_LINE('|-----------------');
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('|------------------------------------------');
+END LOOP;
+END;
+/
+
+EXEC pontbriand_q2;
+
+
+-- Question 3: (use script 7 clearwater)
+
+-- We need to display all item and inventories.
+
+-- Create procedure to display all columns of table item except item_image. 
+
+-- Under each item, display all the inventory belonged to the item 
+
+-- (display any 4 columns of table inventory).
+
+
+
+Question 4: (use script 7 clearwater)
+
+CREATE OR REPLACE PROCEDURE pontbriand_q3 AS
+
+BEGIN
+
+CREATE SEQUENCE inv_audit_seq;
+
+CREATE TABLE audit_inventory(audit_id NUMBER, inv_id NUMBER, color
+VARCHAR2(25), inv_qoh NUMBER);
+
+CREATE OR REPLACE TRIGGER inv_audit_trigger
+BEFORE UPDATE
+ON inventory
+
+BEGIN
+    INSERT INTO audit_inventory
+    VALUES(audit_inventory.NEXTVAL, inv_id, color, inv_qoh);
+END;
+/
+
+----------------------------------------
+
+Question 5: 
+
+(run both script 7clearwater and 7software in one user’s schemas for
+this question)
+
+Create a package specification and package body (name the package:
+your_name_final) 
+
+with all the procedures and functions of question 2,3
+
+Execute the package’s procedure of question 2.
+
+
+
+
+CREATE OR REPLACE PACKAGE pontbriand_final AS
+
+    FUNCTION pontbriand_find_value(
+            p_inv_id NUMBER, 
+            p_inv_price NUMBER,
+            p_qoh NUMBER) RETURN NUMBER;
+
+    PROCEDURE pontbriand_p1(
+    p_inv_id NUMBER,
+    p_inv_price NUMBER,
+    p_inv_size NUMBER,
+    p_inv_color inventory.color%TYPE,
+    p_inv_qoh inventory.inv_size%TYPE);
+
+PROCEDURE pontbriand_q2;
+END;
+/
+
+CREATE OR REPLACE PACKAGE BODY pontbriand_final AS
+
+    FUNCTION pontbriand_find_value(
+            p_inv_id NUMBER, 
+            p_inv_price NUMBER,
+            p_qoh NUMBER) RETURN NUMBER AS
+
+    v_inv_price NUMBER;
+    v_inv_qoh NUMBER;
+    v_value NUMBER;
+
+    BEGIN
+
+    SELECT inv_price, inv_qoh INTO v_inv_price, v_inv_qoh 
+        FROM inventory WHERE inv_id = p_inv_id;
+    v_value := v_inv_price * v_inv_qoh;
+    END;
+    /
+    END pontbriand_find_value;
+
+
+
+
+
+    SOL - 
+
+    Q2 :
+
+    CREATE OR REPLACE FUNCTION f_nguyen()
