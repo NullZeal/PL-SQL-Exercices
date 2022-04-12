@@ -1,0 +1,257 @@
+SQL> ----------Q1
+SQL> 
+SQL> CONNECT des02/des02;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE pack_project9 IS
+  2  PROCEDURE customer_insert(p_c_last VARCHAR2, p_c_birthdate DATE);
+  3  PROCEDURE customer_insert(p_c_last VARCHAR2, p_c_address VARCHAR2);
+  4  PROCEDURE customer_insert(p_c_last VARCHAR2, p_c_first VARCHAR2, p_c_address VARCHAR2);
+  5  PROCEDURE customer_insert(p_c_id NUMBER, p_c_last VARCHAR2, p_c_birthdate DATE);
+  6  FUNCTION getMaxCustomerId RETURN NUMBER;
+  7  
+  8  END;
+  9  /
+
+Package created.
+
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE BODY pack_project9 IS
+  2  
+  3  FUNCTION getMaxCustomerId RETURN NUMBER AS
+  4  v_max NUMBER;
+  5  BEGIN
+  6      SELECT MAX(c_id + 1) INTO v_max FROM CUSTOMER;
+  7  RETURN v_max;
+  8  END;
+  9  
+ 10  PROCEDURE customer_insert(p_c_last VARCHAR2, p_c_birthdate DATE) AS
+ 11      BEGIN
+ 12      INSERT INTO customer(c_id, c_last, c_birthdate)
+ 13              VALUES (getMaxCustomerId, p_c_last, p_c_birthdate);
+ 14      COMMIT;
+ 15      END;
+ 16  
+ 17  PROCEDURE customer_insert (p_c_last VARCHAR2, p_c_address VARCHAR2) AS
+ 18      BEGIN
+ 19      INSERT INTO customer(c_id, c_last, c_address)
+ 20          VALUES(getMaxCustomerId, p_c_last, p_c_address);
+ 21      COMMIT;
+ 22      END;
+ 23  
+ 24  PROCEDURE customer_insert (p_c_last VARCHAR2, p_c_first VARCHAR2, p_c_address VARCHAR2) AS
+ 25      BEGIN
+ 26      INSERT INTO customer(c_id, c_last, c_first, c_address)
+ 27          VALUES(getMaxCustomerId, p_c_last, p_c_first, p_c_address);
+ 28      COMMIT;
+ 29      END;
+ 30  PROCEDURE customer_insert (p_c_id NUMBER, p_c_last VARCHAR2, p_c_birthdate DATE) AS
+ 31      BEGIN
+ 32      INSERT INTO customer(c_id, c_last, c_birthdate)
+ 33          VALUES(p_c_id, p_c_last, p_c_birthdate);
+ 34      COMMIT;
+ 35      END;
+ 36  END;
+ 37  /
+
+Package body created.
+
+SQL> SET SERVEROUTPUT ON
+SQL> SET LINESIZE 200
+SQL> --TEST 1
+SQL> EXEC pack_project9.customer_insert('Pontbriand', TO_DATE('1984-07-01'));
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 2
+SQL> EXEC pack_project9.customer_insert('Cornelius', '1234 Lasalle Street');
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 3
+SQL> EXEC pack_project9.customer_insert('Tremblay', 'Julien', '4321 College Street');
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 4
+SQL> EXEC pack_project9.customer_insert(999, 'Abdul', TO_DATE('1991-01-04'));
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT c_id, c_last, c_first, c_address, c_birthdate FROM customer;
+
+      C_ID C_LAST                         C_FIRST                        C_ADDRESS                      C_BIRTHD                                                                                        
+---------- ------------------------------ ------------------------------ ------------------------------ --------                                                                                        
+         1 Harris                         Paula                          1156 Water Street, Apt. #3     53-04-09                                                                                        
+         2 Garcia                         Maria                          2211 Pine Drive                58-07-14                                                                                        
+         3 Miller                         Lee                            699 Pluto St. NW               36-01-05                                                                                        
+         4 Chang                          Alissa                         987 Durham Rd.                 76-10-01                                                                                        
+         5 Edwards                        Mitch                          4204 Garner Street             86-11-20                                                                                        
+         6 Nelson                         Kyle                           232 Echo Rd.                   84-12-04                                                                                        
+         7 Pontbriand                                                                                   84-07-01                                                                                        
+         8 Cornelius                                                     1234 Lasalle Street                                                                                                            
+         9 Tremblay                       Julien                         4321 College Street                                                                                                            
+       999 Abdul                                                                                        91-01-04                                                                                        
+
+10 rows selected.
+
+SQL> 
+SQL> -------------Q2
+SQL> 
+SQL> CONNECT des03/des03;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE pack_project9Q2 IS
+  2  
+  3  global_last_student_id NUMBER;
+  4  FUNCTION getLastStudentId RETURN NUMBER;
+  5  
+  6  PROCEDURE student_insert(p_s_id NUMBER, p_s_last VARCHAR, p_s_dob DATE);
+  7  PROCEDURE student_insert(p_s_last VARCHAR, p_s_dob DATE);
+  8  PROCEDURE student_insert(p_s_last VARCHAR, p_s_address VARCHAR2);
+  9  PROCEDURE student_insert(p_s_last VARCHAR, p_s_first VARCHAR, p_s_dob DATE, p_f_id NUMBER);
+ 10  
+ 11  END;
+ 12  /
+
+Package created.
+
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE BODY pack_project9Q2 IS
+  2  
+  3      FUNCTION getLastStudentId RETURN NUMBER AS
+  4          v_max NUMBER;
+  5          BEGIN
+  6              SELECT MAX(s_id + 1) INTO v_max FROM student;
+  7          RETURN v_max;
+  8      END;
+  9  
+ 10      PROCEDURE student_insert(p_s_id NUMBER, p_s_last VARCHAR, p_s_dob DATE) AS
+ 11          ex_futureDob EXCEPTION;
+ 12          BEGIN
+ 13  
+ 14          IF p_s_dob > sysdate THEN
+ 15          RAISE ex_futureDob;
+ 16          END IF;
+ 17  
+ 18          INSERT INTO student(s_id, s_last, s_dob)
+ 19              VALUES(p_s_id, p_s_last, TO_DATE(p_s_dob));
+ 20          COMMIT;
+ 21  
+ 22          EXCEPTION
+ 23          WHEN DUP_VAL_ON_INDEX THEN
+ 24          DBMS_OUTPUT.PUT_LINE('Error - Student ID already exists my friend ABDUL!');
+ 25          WHEN ex_futureDob THEN
+ 26          DBMS_OUTPUT.PUT_LINE('Error - Birthdate is in the future!');
+ 27      END;
+ 28  
+ 29      PROCEDURE student_insert(p_s_last VARCHAR, p_s_dob DATE) AS
+ 30          ex_futureDob EXCEPTION;
+ 31          BEGIN
+ 32  
+ 33          IF p_s_dob > sysdate THEN
+ 34          RAISE ex_futureDob;
+ 35          END IF;
+ 36  
+ 37          INSERT INTO student(s_id, s_last, s_dob)
+ 38              VALUES(getLastStudentId, p_s_last, TO_DATE(p_s_dob));
+ 39          COMMIT;
+ 40  
+ 41          EXCEPTION
+ 42          WHEN ex_futureDob THEN
+ 43          DBMS_OUTPUT.PUT_LINE('Error - Birthdate is in the future!');
+ 44          WHEN DUP_VAL_ON_INDEX THEN
+ 45          DBMS_OUTPUT.PUT_LINE('Error - Student ID already exists my friend ABDUL!');
+ 46      END;
+ 47  
+ 48      PROCEDURE student_insert(p_s_last VARCHAR, p_s_address VARCHAR2) AS
+ 49          BEGIN
+ 50          INSERT INTO student(s_id, s_last, s_address)
+ 51              VALUES(getLastStudentId, p_s_last, p_s_address);
+ 52          COMMIT;
+ 53  
+ 54          EXCEPTION
+ 55          WHEN DUP_VAL_ON_INDEX THEN
+ 56          DBMS_OUTPUT.PUT_LINE('Error - Student ID already exists my friend ABDUL!');
+ 57      END;
+ 58  
+ 59      PROCEDURE student_insert(p_s_last VARCHAR, p_s_first VARCHAR, p_s_dob DATE, p_f_id NUMBER) AS
+ 60          v_f_id NUMBER;
+ 61          ex_futureDob EXCEPTION;
+ 62          BEGIN
+ 63  
+ 64          SELECT f_id INTO v_f_id FROM student WHERE f_id = p_f_id;
+ 65  
+ 66          IF p_s_dob > sysdate THEN
+ 67          RAISE ex_futureDob;
+ 68          END IF;
+ 69  
+ 70          INSERT INTO student(s_id, s_last, s_first, s_dob, f_id)
+ 71              VALUES(getLastStudentId, p_s_last, p_s_first, TO_DATE(p_s_dob), p_f_id);
+ 72          COMMIT;
+ 73  
+ 74          EXCEPTION
+ 75          WHEN DUP_VAL_ON_INDEX THEN
+ 76          DBMS_OUTPUT.PUT_LINE('Error - Student ID already exists my friend ABDUL!');
+ 77          WHEN NO_DATA_FOUND THEN
+ 78          DBMS_OUTPUT.PUT_LINE('Error - Factuly ID does not exist');
+ 79          WHEN ex_futureDob THEN
+ 80          DBMS_OUTPUT.PUT_LINE('Error - Birthdate is in the future!');
+ 81      END;
+ 82  
+ 83  END;
+ 84  /
+
+Package body created.
+
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> SET LINESIZE 200
+SQL> 
+SQL> --TEST 1
+SQL> EXEC pack_project9Q2.student_insert(1, 'Montebello', TO_DATE('1984-07-01'));
+Error - Student ID already exists my friend ABDUL!                                                                                                                                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 2
+SQL> EXEC pack_project9Q2.student_insert('Cornelius', TO_DATE('2055-02-01'));
+Error - Birthdate is in the future!                                                                                                                                                                     
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 3
+SQL> EXEC pack_project9Q2.student_insert('Tremblay', '4321 College Street');
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --TEST 4
+SQL> EXEC pack_project9Q2.student_insert('Abdul', 'Ulyss', TO_DATE('1991-01-04'), 999);
+Error - Factuly ID does not exist                                                                                                                                                                       
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT s_id, s_last, s_first, s_address, s_dob, f_id FROM student;
+
+      S_ID S_LAST                         S_FIRST                        S_ADDRESS                 S_DOB          F_ID                                                                                  
+---------- ------------------------------ ------------------------------ ------------------------- -------- ----------                                                                                  
+         1 Miller                         Sarah                          144 Windridge Blvd.       85-07-14          1                                                                                  
+         2 Umato                          Brian                          454 St. John's Place      85-08-19          1                                                                                  
+         3 Black                          Daniel                         8921 Circle Drive         82-10-10          1                                                                                  
+         4 Mobley                         Amanda                         1716 Summit St.           86-09-24          2                                                                                  
+         5 Sanchez                        Ruben                          1780 Samantha Court       86-11-20          4                                                                                  
+         6 Connoly                        Michael                        1818 Silver Street        86-12-04          3                                                                                  
+         7 Tremblay                                                      4321 College Street                                                                                                            
+
+7 rows selected.
+
+SQL> 
+SQL> SPOOL OFF
