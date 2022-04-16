@@ -1,0 +1,352 @@
+SQL> -----Q1
+SQL> connect des02/des02;
+Connected.
+SQL> 
+SQL> CREATE OR REPLACE VIEW specific_inventory_item_view AS
+  2  SELECT item.item_desc, inventory.item_id, inventory.inv_price, inventory.color, inventory.inv_id, inventory.inv_size
+  3  FROM   item, inventory
+  4  WHERE  item.item_id = inventory.item_id;
+
+View created.
+
+SQL> 
+SQL> --TESTING INSERT BEFORE INSTEAD OF TRIGGER
+SQL> 
+SQL> INSERT INTO specific_inventory_item_view(item_desc, item_id, inv_price, color, inv_id, inv_size) VALUES ('testdesc', 888, 888, 'testcolor', 888, 'Z');
+INSERT INTO specific_inventory_item_view(item_desc, item_id, inv_price, color, inv_id, inv_size) VALUES ('testdesc', 888, 888, 'testcolor', 888, 'Z')
+                                         *
+ERROR at line 1:
+ORA-01779: cannot modify a column which maps to a non key-preserved table 
+
+
+SQL> 
+SQL> --TESTING UPDATE BEFORE INSTEAD OF TRIGGER
+SQL> 
+SQL> UPDATE des02.specific_inventory_item_view
+  2    SET   item_desc = '3-Season TentZZZZZ'
+  3    WHERE inv_price = 259.99;
+  SET   item_desc = '3-Season TentZZZZZ'
+        *
+ERROR at line 2:
+ORA-01779: cannot modify a column which maps to a non key-preserved table 
+
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER insteadof_update_insert_cw
+  2  INSTEAD OF UPDATE OR INSERT
+  3  ON specific_inventory_item_view
+  4  FOR EACH ROW
+  5  BEGIN
+  6      IF UPDATING THEN
+  7          UPDATE inventory
+  8          SET
+  9              inv_id  = :NEW.inv_id,
+ 10              inv_price = :NEW.inv_price,
+ 11              color = :NEW.color,
+ 12              inv_size = :NEW.inv_size,
+ 13              item_id = :NEW.item_id
+ 14          WHERE inv_id = :NEW.inv_id;
+ 15  
+ 16          UPDATE item
+ 17          SET    item_desc = :NEW.item_desc
+ 18          WHERE  item_id = :NEW.item_id;
+ 19  
+ 20      ELSIF INSERTING THEN
+ 21  
+ 22          INSERT INTO item(item_id, item_desc)
+ 23          VALUES (:NEW.item_id, :NEW.item_desc);
+ 24  
+ 25          INSERT INTO inventory(inv_id, inv_price, color, inv_size, item_id)
+ 26          VALUES(:NEW.inv_id, :NEW.inv_price, :NEW.color, :NEW.inv_size, :NEW.item_id);
+ 27  
+ 28    END IF;
+ 29    END;
+ 30  /
+
+Trigger created.
+
+SQL> 
+SQL> SELECT * FROM specific_inventory_item_view;
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+3-Season Tent                           2     259.99 Sky Blue                      1                                                                                                                                                                                                                        
+3-Season Tent                           2     259.99 Light Grey                    2                                                                                                                                                                                                                        
+Women's Hiking Shorts                   3      29.95 Khaki                         3 S                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Khaki                         4 M                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Khaki                         5 L                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          6 S                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          7 M                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          8 L                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                      9 S                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                     10 M                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                     11 L                                                                                                                                                                                                                      
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+Women's Fleece Pullover                 4      59.95 Royal                        12 S                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Royal                        13 M                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Royal                        14 L                                                                                                                                                                                                                      
+Children's Beachcomber Sandals          5      15.99 Turquoise                    15 10                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    16 11                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    17 12                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    18 1                                                                                                                                                                                                                      
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  19 10                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  20 11                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  21 12                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  22 1                                                                                                                                                                                                                      
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+Men's Expedition Parka                  1     199.95 Spruce                       23 S                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     199.95 Spruce                       24 M                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     209.95 Spruce                       25 L                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     209.95 Spruce                       26 XL                                                                                                                                                                                                                     
+Boy's Surf Shorts                       6      15.95 Blue                         27 S                                                                                                                                                                                                                      
+Boy's Surf Shorts                       6      15.95 Blue                         28 M                                                                                                                                                                                                                      
+Boy's Surf Shorts                       6      15.95 Blue                         29 L                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        30 S                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        31 M                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        32 L                                                                                                                                                                                                                      
+
+32 rows selected.
+
+SQL> 
+SQL> --TESTING INSERT AFTER INSTEAD OF TRIGGER
+SQL> 
+SQL> INSERT INTO specific_inventory_item_view(item_desc, item_id, inv_price, color, inv_id, inv_size)
+  2  VALUES ('testdesc', 888, 888, 'Blue', 99, 'Z');
+
+1 row created.
+
+SQL> 
+SQL> --TESTING UPDATE AFTER INSTEAD OF TRIGGER
+SQL> 
+SQL> UPDATE des02.specific_inventory_item_view
+  2    SET   item_desc = '3-Season TentZZZZZ'
+  3    WHERE inv_price = 259.99;
+
+2 rows updated.
+
+SQL> 
+SQL> 
+SQL> SELECT * FROM specific_inventory_item_view;
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+3-Season TentZZZZZ                      2     259.99 Sky Blue                      1                                                                                                                                                                                                                        
+3-Season TentZZZZZ                      2     259.99 Light Grey                    2                                                                                                                                                                                                                        
+Women's Hiking Shorts                   3      29.95 Khaki                         3 S                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Khaki                         4 M                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Khaki                         5 L                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          6 S                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          7 M                                                                                                                                                                                                                      
+Women's Hiking Shorts                   3      29.95 Navy                          8 L                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                      9 S                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                     10 M                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Eggplant                     11 L                                                                                                                                                                                                                      
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+Women's Fleece Pullover                 4      59.95 Royal                        12 S                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Royal                        13 M                                                                                                                                                                                                                      
+Women's Fleece Pullover                 4      59.95 Royal                        14 L                                                                                                                                                                                                                      
+Children's Beachcomber Sandals          5      15.99 Turquoise                    15 10                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    16 11                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    17 12                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Turquoise                    18 1                                                                                                                                                                                                                      
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  19 10                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  20 11                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  21 12                                                                                                                                                                                                                     
+Children's Beachcomber Sandals          5      15.99 Bright Pink                  22 1                                                                                                                                                                                                                      
+
+ITEM_DESC                         ITEM_ID  INV_PRICE COLOR                    INV_ID INV_SIZE                                                                                                                                                                                                               
+------------------------------ ---------- ---------- -------------------- ---------- ----------                                                                                                                                                                                                             
+Men's Expedition Parka                  1     199.95 Spruce                       23 S                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     199.95 Spruce                       24 M                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     209.95 Spruce                       25 L                                                                                                                                                                                                                      
+Men's Expedition Parka                  1     209.95 Spruce                       26 XL                                                                                                                                                                                                                     
+Boy's Surf Shorts                       6      15.95 Blue                         27 S                                                                                                                                                                                                                      
+Boy's Surf Shorts                       6      15.95 Blue                         28 M                                                                                                                                                                                                                      
+Boy's Surf Shorts                       6      15.95 Blue                         29 L                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        30 S                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        31 M                                                                                                                                                                                                                      
+Girl's Soccer Tee                       7      19.99 White                        32 L                                                                                                                                                                                                                      
+testdesc                              888        888 Blue                         99 Z                                                                                                                                                                                                                      
+
+33 rows selected.
+
+SQL> 
+SQL> ----Q2
+SQL> 
+SQL> connect des03/des03;
+Connected.
+SQL> set linesize 300
+SQL> 
+SQL> CREATE OR REPLACE VIEW course_student_view AS
+  2  SELECT  course.course_id, student.s_id, course.course_name, course.credits, student.s_last,
+  3          student.s_first, course_section.c_sec_id, course_section.sec_num, course_section.term_id, course_section.max_enrl, enrollment.grade
+  4  FROM course, student, course_section, enrollment
+  5  WHERE   enrollment.s_id = student.s_id
+  6  AND enrollment.c_sec_id = course_section.c_sec_id
+  7  AND enrollment.s_id = student.s_id
+  8  AND course_section.course_id = course.course_id;
+
+View created.
+
+SQL> 
+SQL> --TESTING INSERT BEFORE INSTEAD OF TRIGGER
+SQL> 
+SQL> INSERT INTO des03.course_student_view(course_name, credits, s_last, s_first, c_sec_id, sec_num, grade)
+  2  VALUES ('DATABASE2', 499, 'Pontbriand', 'Julien', 399, '299', 'A');
+INSERT INTO des03.course_student_view(course_name, credits, s_last, s_first, c_sec_id, sec_num, grade)
+                                      *
+ERROR at line 1:
+ORA-01779: cannot modify a column which maps to a non key-preserved table 
+
+
+SQL> 
+SQL> --TESTING UPDATE BEFORE INSTEAD OF TRIGGER
+SQL> 
+SQL> UPDATE des03.course_student_view
+  2    SET   course_name = 'Haloween Fun'
+  3    WHERE grade = 'B';
+  SET   course_name = 'Haloween Fun'
+        *
+ERROR at line 2:
+ORA-01779: cannot modify a column which maps to a non key-preserved table 
+
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER insteadof_update_insert_csv
+  2  INSTEAD OF UPDATE OR INSERT
+  3  ON course_student_view
+  4  FOR EACH ROW
+  5  BEGIN
+  6      IF UPDATING THEN
+  7          UPDATE course
+  8          SET
+  9          course_name = :NEW.course_name,
+ 10          credits = :NEW.credits
+ 11          WHERE course_id = :NEW.course_id;
+ 12  
+ 13          UPDATE student
+ 14          SET
+ 15          s_last = :NEW.s_last,
+ 16          s_first = :NEW.s_first
+ 17          WHERE s_id = :NEW.s_id;
+ 18  
+ 19          UPDATE course_section
+ 20          SET
+ 21          c_sec_id = :NEW.c_sec_id,
+ 22          sec_num = :NEW.sec_num
+ 23          WHERE c_sec_id = :NEW.c_sec_id;
+ 24  
+ 25          UPDATE enrollment
+ 26          SET
+ 27          grade = :NEW.grade
+ 28          WHERE s_id = :NEW.s_id AND c_sec_id = :NEW.c_sec_id;
+ 29  
+ 30      ELSIF INSERTING THEN
+ 31  
+ 32          INSERT INTO course(course_id, course_name, credits)
+ 33          VALUES (:NEW.course_id, :NEW.course_name, :NEW.credits);
+ 34  
+ 35          INSERT INTO student(s_id, s_last, s_first)
+ 36          VALUES (:NEW.s_id, :NEW.s_last, :NEW.s_first);
+ 37  
+ 38          INSERT INTO course_section(c_sec_id, course_id, term_id, max_enrl, sec_num)
+ 39          VALUES (:NEW.c_sec_id, :NEW.course_id, :NEW.term_id, :NEW.max_enrl, :NEW.sec_num);
+ 40  
+ 41          INSERT INTO enrollment(s_id, c_sec_id, grade)
+ 42          VALUES (:NEW.s_id, :NEW.c_sec_id, :NEW.grade);
+ 43  
+ 44    END IF;
+ 45  END;
+ 46  /
+
+Trigger created.
+
+SQL> 
+SQL> SELECT * from course_student_view;
+
+ COURSE_ID       S_ID COURSE_NAME                  CREDITS S_LAST                         S_FIRST                          C_SEC_ID    SEC_NUM    TERM_ID   MAX_ENRL G                                                                                                                                      
+---------- ---------- ------------------------- ---------- ------------------------------ ------------------------------ ---------- ---------- ---------- ---------- -                                                                                                                                      
+         5          1 Web-Based Systems                  3 Miller                         Sarah                                   9          1          5         35 B                                                                                                                                      
+         3          1 Database Management                3 Miller                         Sarah                                   6          1          5         30 B                                                                                                                                      
+         2          1 Systems Analysis                   3 Miller                         Sarah                                   4          1          4         35 A                                                                                                                                      
+         1          1 Intro. to Info. Systems            3 Miller                         Sarah                                   1          1          4        140 A                                                                                                                                      
+         5          2 Web-Based Systems                  3 Umato                          Brian                                   9          1          5         35 B                                                                                                                                      
+         3          2 Database Management                3 Umato                          Brian                                   6          1          5         30 A                                                                                                                                      
+         2          2 Systems Analysis                   3 Umato                          Brian                                   5          2          5         35 B                                                                                                                                      
+         1          2 Intro. to Info. Systems            3 Umato                          Brian                                   1          1          4        140 C                                                                                                                                      
+         3          3 Database Management                3 Black                          Daniel                                 13          1          6         35                                                                                                                                        
+         2          3 Systems Analysis                   3 Black                          Daniel                                 12          1          6         35                                                                                                                                        
+         1          3 Intro. to Info. Systems            3 Black                          Daniel                                  1          1          4        140 C                                                                                                                                      
+
+ COURSE_ID       S_ID COURSE_NAME                  CREDITS S_LAST                         S_FIRST                          C_SEC_ID    SEC_NUM    TERM_ID   MAX_ENRL G                                                                                                                                      
+---------- ---------- ------------------------- ---------- ------------------------------ ------------------------------ ---------- ---------- ---------- ---------- -                                                                                                                                      
+         2          4 Systems Analysis                   3 Mobley                         Amanda                                 12          1          6         35                                                                                                                                        
+         1          4 Intro. to Info. Systems            3 Mobley                         Amanda                                 11          1          6         50                                                                                                                                        
+         3          5 Database Management                3 Sanchez                        Ruben                                  13          1          6         35                                                                                                                                        
+         1          5 Intro. to Info. Systems            3 Sanchez                        Ruben                                  11          1          6         50                                                                                                                                        
+         5          5 Web-Based Systems                  3 Sanchez                        Ruben                                   9          1          5         35 C                                                                                                                                      
+         2          5 Systems Analysis                   3 Sanchez                        Ruben                                   5          2          5         35 C                                                                                                                                      
+         1          5 Intro. to Info. Systems            3 Sanchez                        Ruben                                   1          1          4        140 B                                                                                                                                      
+         2          6 Systems Analysis                   3 Connoly                        Michael                                12          1          6         35                                                                                                                                        
+         1          6 Intro. to Info. Systems            3 Connoly                        Michael                                11          1          6         50                                                                                                                                        
+
+20 rows selected.
+
+SQL> 
+SQL> --TESTING INSERT AFTER INSTEAD OF TRIGGER
+SQL> 
+SQL> INSERT INTO des03.course_student_view(course_id, s_id, course_name, credits, s_last, s_first, c_sec_id, max_enrl, term_id, sec_num, grade)
+  2  VALUES (15, 55, 'SUPER DATABASE CLASS', 42, 'Pontbriandhi', 'Juliani', 40, 3, 5, 12, 'A');
+
+1 row created.
+
+SQL> 
+SQL> --TESTING UPDATE AFTER INSTEAD OF TRIGGER
+SQL> 
+SQL> UPDATE des03.course_student_view
+  2    SET   credits = 12
+  3    WHERE course_id = 1;
+
+7 rows updated.
+
+SQL> 
+SQL> --RESULT OF UPDATE AND INSERT IN STUDENT AND COURSE TABLES
+SQL> 
+SQL> SELECT * from course_student_view;
+
+ COURSE_ID       S_ID COURSE_NAME                  CREDITS S_LAST                         S_FIRST                          C_SEC_ID    SEC_NUM    TERM_ID   MAX_ENRL G                                                                                                                                      
+---------- ---------- ------------------------- ---------- ------------------------------ ------------------------------ ---------- ---------- ---------- ---------- -                                                                                                                                      
+         5          1 Web-Based Systems                  3 Miller                         Sarah                                   9          1          5         35 B                                                                                                                                      
+         3          1 Database Management                3 Miller                         Sarah                                   6          1          5         30 B                                                                                                                                      
+         2          1 Systems Analysis                   3 Miller                         Sarah                                   4          1          4         35 A                                                                                                                                      
+         1          1 Intro. to Info. Systems           12 Miller                         Sarah                                   1          1          4        140 A                                                                                                                                      
+         5          2 Web-Based Systems                  3 Umato                          Brian                                   9          1          5         35 B                                                                                                                                      
+         3          2 Database Management                3 Umato                          Brian                                   6          1          5         30 A                                                                                                                                      
+         2          2 Systems Analysis                   3 Umato                          Brian                                   5          2          5         35 B                                                                                                                                      
+         1          2 Intro. to Info. Systems           12 Umato                          Brian                                   1          1          4        140 C                                                                                                                                      
+         3          3 Database Management                3 Black                          Daniel                                 13          1          6         35                                                                                                                                        
+         2          3 Systems Analysis                   3 Black                          Daniel                                 12          1          6         35                                                                                                                                        
+         1          3 Intro. to Info. Systems           12 Black                          Daniel                                  1          1          4        140 C                                                                                                                                      
+
+ COURSE_ID       S_ID COURSE_NAME                  CREDITS S_LAST                         S_FIRST                          C_SEC_ID    SEC_NUM    TERM_ID   MAX_ENRL G                                                                                                                                      
+---------- ---------- ------------------------- ---------- ------------------------------ ------------------------------ ---------- ---------- ---------- ---------- -                                                                                                                                      
+         2          4 Systems Analysis                   3 Mobley                         Amanda                                 12          1          6         35                                                                                                                                        
+         1          4 Intro. to Info. Systems           12 Mobley                         Amanda                                 11          1          6         50                                                                                                                                        
+         3          5 Database Management                3 Sanchez                        Ruben                                  13          1          6         35                                                                                                                                        
+         1          5 Intro. to Info. Systems           12 Sanchez                        Ruben                                  11          1          6         50                                                                                                                                        
+         5          5 Web-Based Systems                  3 Sanchez                        Ruben                                   9          1          5         35 C                                                                                                                                      
+         2          5 Systems Analysis                   3 Sanchez                        Ruben                                   5          2          5         35 C                                                                                                                                      
+         1          5 Intro. to Info. Systems           12 Sanchez                        Ruben                                   1          1          4        140 B                                                                                                                                      
+         2          6 Systems Analysis                   3 Connoly                        Michael                                12          1          6         35                                                                                                                                        
+         1          6 Intro. to Info. Systems           12 Connoly                        Michael                                11          1          6         50                                                                                                                                        
+        15         55 SUPER DATABASE CLASS              42 Pontbriandhi                   Juliani                                40         12          5          3 A                                                                                                                                      
+
+21 rows selected.
+
+SQL> SPOOL OFF
